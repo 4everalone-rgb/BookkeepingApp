@@ -317,6 +317,21 @@ body {
 .summary-table td { color: #e0e0e8; }
 .summary-table .amount-cell { text-align: right; font-weight: 500; }
 .summary-table .budget-cell { text-align: right; color: #8b8b9b; }
+.budget-input {
+  background: #0f0f18;
+  border: 1px solid #2a2a3a;
+  border-radius: 6px;
+  padding: 4px 8px;
+  color: #e0e0e8;
+  font-size: 0.875rem;
+  font-family: 'Inter', sans-serif;
+  text-align: right;
+  width: 80px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.budget-input:focus { border-color: #89CFF0; }
+.summary-table .budget-cell { padding: 6px 12px; }
 .summary-table .over-budget { color: #ff6b6b; }
 .summary-table .under-budget { color: #89CFF0; }
 .grand-total {
@@ -985,7 +1000,7 @@ function renderSummaryTable(month, config) {
     html += '<tr>';
     html += '<td>' + escapeHtml(cat) + '</td>';
     html += '<td class="amount-cell' + diffClass + '">' + formatMoney(actual) + '</td>';
-    html += '<td class="budget-cell">' + (budget ? formatMoney(budget) : '') + '</td>';
+    html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + (budget || '') + '" onchange="updateBudget(' + "'" + escapeJs(cat) + "'" + ',this.value)"></td>';
     html += '</tr>';
   }
 
@@ -2001,4 +2016,16 @@ renderMonthBar();
 renderMonth();
 </script>
 </body>
-</html>
+</html
+// ============================================================
+// BUDGET OPERATIONS
+// ============================================================
+function updateBudget(cat, value) {
+  var amt = parseFloat(value) || 0;
+  appData.months[currentMonth].budgets[cat] = amt;
+  saveData();
+  renderMonth();
+  showToast('Budget updated');
+}
+
+>
