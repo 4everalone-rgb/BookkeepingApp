@@ -625,6 +625,7 @@ body {
 </style>
 <base target="_blank">
 <base target="_blank">
+<base target="_blank">
 </head>
 <body>
 
@@ -730,6 +731,20 @@ function validateData(data) {
   if (!data.config.categories || !data.config.banks || !data.config.salarySources) return false;
   var keys = Object.keys(data.months);
   if (keys.length === 0) return false;
+  // Ensure all months have budgets for all current categories
+  for (var m in data.months) {
+    var month = data.months[m];
+    if (!month.budgets) month.budgets = {};
+    for (var c = 0; c < data.config.categories.length; c++) {
+      var cat = data.config.categories[c];
+      if (month.budgets[cat] === undefined) {
+        month.budgets[cat] = data.config.budgets[cat] || 0;
+      }
+    }
+    if (month.budgets['Fixed Expenses'] === undefined) {
+      month.budgets['Fixed Expenses'] = data.config.budgets['Fixed Expenses'] || 0;
+    }
+  }
   return true;
 }
 
@@ -1016,7 +1031,7 @@ function renderSummaryTable(month, config) {
   html += '<tr>';
   html += '<td>Fixed Expenses</td>';
   html += '<td class="amount-cell">' + formatMoney(fixedTotal) + '</td>';
-  html += '<td class="budget-cell">' + (fixedBudget ? formatMoney(fixedBudget) : '') + '</td>';
+  html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + (fixedBudget || '') + '" onchange="updateBudget(' + "'" + 'Fixed Expenses' + "'" + ',this.value)"></td>';
   html += '</tr>';
 
   html += '</tbody>';
@@ -1168,7 +1183,9 @@ function addCategoryFromUI() {
 
   for (var m in appData.months) {
     appData.months[m].expenditures[name] = [];
-    appData.months[m].budgets[name] = 0;
+    if (appData.months[m].budgets[name] === undefined) {
+      appData.months[m].budgets[name] = 0;
+    }
   }
 
   saveData();
@@ -1202,6 +1219,7 @@ function updateFixedExpenseAmount(index, value) {
   }
   saveData();
   renderMonth();
+  showToast('Fixed expense updated');
 }
 
 function removeFixedExpense(index) {
@@ -2009,6 +2027,19 @@ function exportToExcel() {
 }
 
 // ============================================================
+// BUDGET OPERATIONS
+// ============================================================
+function updateBudget(cat, value) {
+  var amt = parseFloat(value) || 0;
+  appData.months[currentMonth].budgets[cat] = amt;
+  // Also update config so new months inherit the latest budget
+  appData.config.budgets[cat] = amt;
+  saveData();
+  renderMonth();
+  showToast('Budget updated');
+}
+
+// ============================================================
 // APP INITIALIZATION
 // ============================================================
 initData();
@@ -2016,16 +2047,4 @@ renderMonthBar();
 renderMonth();
 </script>
 </body>
-</html
-// ============================================================
-// BUDGET OPERATIONS
-// ============================================================
-function updateBudget(cat, value) {
-  var amt = parseFloat(value) || 0;
-  appData.months[currentMonth].budgets[cat] = amt;
-  saveData();
-  renderMonth();
-  showToast('Budget updated');
-}
-
->
+</html>
