@@ -625,7 +625,6 @@ body {
 </style>
 <base target="_blank">
 <base target="_blank">
-<base target="_blank">
 </head>
 <body>
 
@@ -647,7 +646,10 @@ body {
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script><script>
+// ============================================================
+// NUCLEAR-SAFE DATA LAYER
+// ============================================================
 var STORAGE_KEY = 'genericFinances2026_v2';
 var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
@@ -675,27 +677,63 @@ var DEFAULT_CONFIG = {
 
 var appData = null;
 var currentMonth = null;
+var storageMode = 'localStorage'; // 'localStorage', 'sessionStorage', 'memory'
+var memoryStore = null;
 
-function initData() {
+// --- STORAGE AVAILABILITY DETECTOR ---
+function isStorageAvailable(type) {
   try {
-    var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      appData = JSON.parse(saved);
-      if (!validateData(appData)) {
-        appData = createDefaultData();
-      }
-    } else {
-      appData = createDefaultData();
-    }
+    var storage = window[type];
+    var x = '__storage_test__';
+    storage.setItem(x, x);
+    storage.removeItem(x);
+    return true;
   } catch (e) {
-    appData = createDefaultData();
+    return false;
   }
-  currentMonth = Object.keys(appData.months)[0] || 'May';
 }
 
+function getStorage() {
+  if (storageMode === 'localStorage' && isStorageAvailable('localStorage')) return localStorage;
+  if (storageMode === 'sessionStorage' && isStorageAvailable('sessionStorage')) return sessionStorage;
+  return null;
+}
+
+function storageGetItem(key) {
+  var s = getStorage();
+  if (s) {
+    try { return s.getItem(key); } catch (e) { return null; }
+  }
+  if (memoryStore && memoryStore[key] !== undefined) {
+    return memoryStore[key];
+  }
+  return null;
+}
+
+function storageSetItem(key, value) {
+  var s = getStorage();
+  if (s) {
+    try {
+      s.setItem(key, value);
+      return true;
+    } catch (e) {
+      // Quota exceeded or private mode — fall back to memory
+      storageMode = 'memory';
+      if (!memoryStore) memoryStore = {};
+      memoryStore[key] = value;
+      showToast('Storage limited — using memory mode');
+      return true;
+    }
+  }
+  if (!memoryStore) memoryStore = {};
+  memoryStore[key] = value;
+  return true;
+}
+
+// --- DEFAULT DATA FACTORY ---
 function createDefaultData() {
   var data = {
-    config: JSON.parse(JSON.stringify(DEFAULT_CONFIG)),
+    config: deepClone(DEFAULT_CONFIG),
     months: {},
     version: 2
   };
@@ -709,53 +747,153 @@ function createMonthData(monthName, config) {
     expenditures: {},
     salary: {},
     balances: { beginning: {}, ending: {} },
-    budgets: JSON.parse(JSON.stringify(config.budgets))
+    budgets: deepClone(config.budgets || {})
   };
-  for (var i = 0; i < config.categories.length; i++) {
-    month.expenditures[config.categories[i]] = [];
+  var cats = config.categories || [];
+  for (var i = 0; i < cats.length; i++) {
+    month.expenditures[cats[i]] = [];
   }
-  month.expenditures['Fixed Expenses'] = JSON.parse(JSON.stringify(config.fixedExpenses));
-  for (var j = 0; j < config.salarySources.length; j++) {
-    month.salary[config.salarySources[j]] = '';
+  month.expenditures['Fixed Expenses'] = deepClone(config.fixedExpenses || []);
+  var sources = config.salarySources || [];
+  for (var j = 0; j < sources.length; j++) {
+    month.salary[sources[j]] = '';
   }
-  for (var b = 0; b < config.banks.length; b++) {
-    month.balances.beginning[config.banks[b]] = '';
-    month.balances.ending[config.banks[b]] = '';
+  var banks = config.banks || [];
+  for (var b = 0; b < banks.length; b++) {
+    month.balances.beginning[banks[b]] = '';
+    month.balances.ending[banks[b]] = '';
   }
   return month;
 }
 
-function validateData(data) {
-  if (!data || typeof data !== 'object') return false;
-  if (!data.config || !data.months) return false;
-  if (!data.config.categories || !data.config.banks || !data.config.salarySources) return false;
-  var keys = Object.keys(data.months);
-  if (keys.length === 0) return false;
-  // Ensure all months have budgets for all current categories
-  for (var m in data.months) {
-    var month = data.months[m];
-    if (!month.budgets) month.budgets = {};
-    for (var c = 0; c < data.config.categories.length; c++) {
-      var cat = data.config.categories[c];
-      if (month.budgets[cat] === undefined) {
-        month.budgets[cat] = data.config.budgets[cat] || 0;
+function deepClone(obj) {
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    var arr = [];
+    for (var i = 0; i < obj.length; i++) arr.push(deepClone(obj[i]));
+    return arr;
+  }
+  var cloned = {};
+  for (var k in obj) {
+    if (obj.hasOwnProperty(k)) cloned[k] = deepClone(obj[k]);
+  }
+  return cloned;
+}
+
+// --- DATA VALIDATION & REPAIR (NUCLEAR) ---
+function validateAndRepairData(data) {
+  if (!data || typeof data !== 'object') return createDefaultData();
+  if (!data.config || typeof data.config !== 'object') data.config = deepClone(DEFAULT_CONFIG);
+  if (!data.months || typeof data.months !== 'object') data.months = {};
+
+  var cfg = data.config;
+  // Ensure config arrays exist
+  if (!cfg.categories || !Array.isArray(cfg.categories) || cfg.categories.length === 0) {
+    cfg.categories = deepClone(DEFAULT_CONFIG.categories);
+  }
+  if (!cfg.banks || !Array.isArray(cfg.banks) || cfg.banks.length === 0) {
+    cfg.banks = deepClone(DEFAULT_CONFIG.banks);
+  }
+  if (!cfg.salarySources || !Array.isArray(cfg.salarySources) || cfg.salarySources.length === 0) {
+    cfg.salarySources = deepClone(DEFAULT_CONFIG.salarySources);
+  }
+  if (!cfg.fixedExpenses || !Array.isArray(cfg.fixedExpenses)) {
+    cfg.fixedExpenses = deepClone(DEFAULT_CONFIG.fixedExpenses);
+  }
+  if (!cfg.budgets || typeof cfg.budgets !== 'object') {
+    cfg.budgets = deepClone(DEFAULT_CONFIG.budgets);
+  }
+  if (!cfg.appName || typeof cfg.appName !== 'string') {
+    cfg.appName = DEFAULT_CONFIG.appName;
+  }
+
+  // Repair every month to match current config
+  var monthKeys = Object.keys(data.months);
+  if (monthKeys.length === 0) {
+    data.months['May'] = createMonthData('May', cfg);
+  } else {
+    for (var m = 0; m < monthKeys.length; m++) {
+      var mk = monthKeys[m];
+      var month = data.months[mk];
+      if (!month || typeof month !== 'object') {
+        data.months[mk] = createMonthData(mk, cfg);
+        continue;
+      }
+      if (!month.expenditures || typeof month.expenditures !== 'object') month.expenditures = {};
+      if (!month.salary || typeof month.salary !== 'object') month.salary = {};
+      if (!month.balances || typeof month.balances !== 'object') month.balances = { beginning: {}, ending: {} };
+      if (!month.balances.beginning || typeof month.balances.beginning !== 'object') month.balances.beginning = {};
+      if (!month.balances.ending || typeof month.balances.ending !== 'object') month.balances.ending = {};
+      if (!month.budgets || typeof month.budgets !== 'object') month.budgets = {};
+
+      // Ensure all categories have expenditure arrays
+      for (var c = 0; c < cfg.categories.length; c++) {
+        var cat = cfg.categories[c];
+        if (!Array.isArray(month.expenditures[cat])) {
+          month.expenditures[cat] = [];
+        }
+        if (month.budgets[cat] === undefined) {
+          month.budgets[cat] = cfg.budgets[cat] || 0;
+        }
+      }
+      // Ensure Fixed Expenses exists
+      if (!Array.isArray(month.expenditures['Fixed Expenses'])) {
+        month.expenditures['Fixed Expenses'] = deepClone(cfg.fixedExpenses || []);
+      }
+      if (month.budgets['Fixed Expenses'] === undefined) {
+        month.budgets['Fixed Expenses'] = cfg.budgets['Fixed Expenses'] || 0;
+      }
+
+      // Ensure all salary sources exist
+      for (var s = 0; s < cfg.salarySources.length; s++) {
+        var src = cfg.salarySources[s];
+        if (month.salary[src] === undefined) month.salary[src] = '';
+      }
+
+      // Ensure all banks exist in balances
+      for (var b = 0; b < cfg.banks.length; b++) {
+        var bank = cfg.banks[b];
+        if (month.balances.beginning[bank] === undefined) month.balances.beginning[bank] = '';
+        if (month.balances.ending[bank] === undefined) month.balances.ending[bank] = '';
       }
     }
-    if (month.budgets['Fixed Expenses'] === undefined) {
-      month.budgets['Fixed Expenses'] = data.config.budgets['Fixed Expenses'] || 0;
-    }
   }
-  return true;
+
+  return data;
+}
+
+function initData() {
+  try {
+    var saved = storageGetItem(STORAGE_KEY);
+    if (saved) {
+      var parsed = JSON.parse(saved);
+      appData = validateAndRepairData(parsed);
+    } else {
+      appData = createDefaultData();
+    }
+  } catch (e) {
+    console.error('Init error:', e);
+    appData = createDefaultData();
+  }
+  // Ensure currentMonth is valid
+  var keys = Object.keys(appData.months || {});
+  if (!currentMonth || !appData.months[currentMonth]) {
+    currentMonth = keys[0] || 'May';
+  }
 }
 
 function saveData() {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
+    storageSetItem(STORAGE_KEY, JSON.stringify(appData));
   } catch (e) {
     showToast('Error saving data');
+    console.error('Save error:', e);
   }
 }
 
+// ============================================================
+// MONTH MANAGEMENT
+// ============================================================
 function addMonth() {
   var monthInput = prompt('Enter month name (e.g. January, February, March...):');
   if (!monthInput) return;
@@ -788,11 +926,14 @@ function sortMonthsChronologically(months) {
   for (var i = 0; i < MONTH_NAMES.length; i++) {
     order[MONTH_NAMES[i]] = i;
   }
-  return months.sort(function(a, b) {
-    return order[a] - order[b];
+  return months.slice().sort(function(a, b) {
+    return (order[a] || 0) - (order[b] || 0);
   });
 }
 
+// ============================================================
+// UTILITIES
+// ============================================================
 function dateToSerial(dateStr) {
   if (!dateStr) return '';
   var d = new Date(dateStr);
@@ -821,289 +962,385 @@ function formatMoney(val) {
 }
 
 // ============================================================
-// RENDERING
-// ============================================================
-function renderMonthBar() {
-  var bar = document.getElementById('monthBar');
-  var html = '';
-  var months = sortMonthsChronologically(Object.keys(appData.months));
-  for (var i = 0; i < months.length; i++) {
-    var m = months[i];
-    var active = m === currentMonth ? ' active' : '';
-    html += '<button class="month-pill' + active + '" onclick="switchMonth(' + "'" + m + "'" + ')">' + m + '</button>';
-  }
-  html += '<button class="month-pill add-btn" onclick="addMonth()">+ Month</button>';
-  bar.innerHTML = html;
-}
-
-function renderMonth() {
-  var container = document.getElementById('mainContent');
-  var month = appData.months[currentMonth];
-  var config = appData.config;
-  if (!month) return;
-  document.getElementById('appTitle').textContent = config.appName || 'My Finances';
-  var html = '';
-
-  // INCOME SECTION
-  html += '<div class="section-card">';
-  html += '<div class="card-header"><span class="card-title">Income</span></div>';
-  var salaryTotal = 0;
-  for (var i = 0; i < config.salarySources.length; i++) {
-    var src = config.salarySources[i];
-    var val = month.salary[src] || '';
-    html += '<div class="salary-row">';
-    html += '<div class="inline-edit-wrap">';
-    html += '<input type="text" class="salary-label" value="' + escapeHtml(src) + '" onchange="renameSalarySource(' + i + ', this.value)" />';
-    html += '<button class="btn-inline" onclick="removeSalarySource(' + i + ')">&#215;</button>';
-    html += '</div>';
-    html += '<input type="text" inputmode="decimal" class="salary-input" value="' + val + '" onchange="updateSalary(' + "'" + escapeJs(src) + "'" + ',this.value)">';
-    html += '</div>';
-    if (val) salaryTotal += parseFloat(val) || 0;
-  }
-  html += '<div class="add-salary-bar">';
-  html += '<input type="text" class="add-salary-input" id="newSalaryName" placeholder="New income source...">';
-  html += '<button class="btn-add-salary" onclick="addSalarySourceFromUI()">Add</button>';
-  html += '</div>';
-  html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total Income</span><span class="card-total">' + formatMoney(salaryTotal) + '</span></div>';
-  html += '</div>';
-
-  // EXPENSE CATEGORIES
-  for (var c = 0; c < config.categories.length; c++) {
-    var cat = config.categories[c];
-    html += renderCategoryCard(cat, month.expenditures[cat], c);
-  }
-
-  // ADD NEW CATEGORY BAR
-  html += '<div class="add-category-bar">';
-  html += '<input type="text" class="add-category-input" id="newCategoryName" placeholder="New category name...">';
-  html += '<button class="btn-add-cat" onclick="addCategoryFromUI()">Add Category</button>';
-  html += '</div>';
-
-  // FIXED EXPENSES
-  html += renderFixedExpensesCard(month.expenditures['Fixed Expenses']);
-
-  // BEGINNING BALANCE
-  html += '<div class="section-card">';
-  html += '<div class="card-header"><span class="card-title">Beginning Balance</span><span class="card-total">ZAR</span></div>';
-  html += '<div class="balance-grid">';
-  var begTotal = 0;
-  for (var b = 0; b < config.banks.length; b++) {
-    var bank = config.banks[b];
-    var val = month.balances.beginning[bank] || '';
-    html += '<div class="balance-item">';
-    html += '<div class="inline-edit-wrap" style="justify-content:center;">';
-    html += '<input type="text" class="balance-label" value="' + escapeHtml(bank) + '" onchange="renameBank(' + b + ', this.value)" />';
-    html += '<button class="btn-inline" onclick="removeBank(' + b + ')">&#215;</button>';
-    html += '</div>';
-    html += '<input type="text" inputmode="decimal" class="balance-input" value="' + val + '" onchange="updateBalance(' + "'beginning'" + ',' + "'" + escapeJs(bank) + "'" + ',this.value)">';
-    html += '</div>';
-    if (val) begTotal += parseFloat(val) || 0;
-  }
-  html += '</div>';
-  html += '<div class="add-bank-bar">';
-  html += '<input type="text" class="add-bank-input" id="newBankName" placeholder="New bank account...">';
-  html += '<button class="btn-add-bank" onclick="addBankFromUI()">Add Bank</button>';
-  html += '</div>';
-  html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(begTotal) + '</span></div>';
-  html += '</div>';
-
-  // ENDING BALANCE
-  html += '<div class="section-card">';
-  html += '<div class="card-header"><span class="card-title">Ending Balance</span><span class="card-total">ZAR</span></div>';
-  html += '<div class="balance-grid">';
-  var endTotal = 0;
-  for (var b2 = 0; b2 < config.banks.length; b2++) {
-    var bank2 = config.banks[b2];
-    var val2 = month.balances.ending[bank2] || '';
-    html += '<div class="balance-item">';
-    html += '<div class="inline-edit-wrap" style="justify-content:center;">';
-    html += '<input type="text" class="balance-label" value="' + escapeHtml(bank2) + '" onchange="renameBank(' + b2 + ', this.value)" />';
-    html += '<button class="btn-inline" onclick="removeBank(' + b2 + ')">&#215;</button>';
-    html += '</div>';
-    html += '<input type="text" inputmode="decimal" class="balance-input" value="' + val2 + '" onchange="updateBalance(' + "'ending'" + ',' + "'" + escapeJs(bank2) + "'" + ',this.value)">';
-    html += '</div>';
-    if (val2) endTotal += parseFloat(val2) || 0;
-  }
-  html += '</div>';
-  html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(endTotal) + '</span></div>';
-  html += '</div>';
-
-  html += renderSummaryTable(month, config);
-
-  container.innerHTML = html;
-}
-
-function renderCategoryCard(cat, items, catIndex) {
-  var html = '<div class="section-card">';
-  html += '<div class="card-header">';
-  html += '<div class="inline-edit-wrap">';
-  html += '<input type="text" class="card-title" value="' + escapeHtml(cat) + '" onchange="renameCategory(' + catIndex + ', this.value)" />';
-  html += '<button class="btn-inline" onclick="removeCategory(' + catIndex + ')">&#215;</button>';
-  html += '</div>';
-  html += '</div>';
-
-  var total = 0;
-  for (var j = 0; j < items.length; j++) {
-    var entry = items[j];
-    var dateStr = serialToDateString(entry.date);
-    html += '<div class="row-entry">';
-    html += '<input type="text" class="row-input input-desc" value="' + escapeHtml(entry.desc || '') + '" placeholder="Description" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'desc'" + ',this.value)">';
-    html += '<input type="date" class="row-input input-date" value="' + dateStr + '" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'date'" + ',this.value)">';
-    html += '<input type="text" inputmode="decimal" class="row-input input-amount" value="' + (entry.amount || '') + '" placeholder="0" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'amount'" + ',this.value)">';
-    html += '<button class="btn-delete" onclick="deleteEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ')">&#215;</button>';
-    html += '</div>';
-    if (entry.amount) total += parseFloat(entry.amount) || 0;
-  }
-  html += '<button class="btn-add" onclick="addEntry(' + "'" + escapeJs(cat) + "'" + ')">+ Add ' + escapeHtml(cat) + ' Entry</button>';
-
-  html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(total) + '</span></div>';
-  html += '</div>';
-  return html;
-}
-
-function renderFixedExpensesCard(items) {
-  var html = '<div class="section-card">';
-  html += '<div class="card-header"><span class="card-title">Fixed Expenses</span></div>';
-
-  var total = 0;
-  for (var i = 0; i < items.length; i++) {
-    var item = items[i];
-    html += '<div class="fixed-row">';
-    html += '<input type="text" class="fixed-label" value="' + escapeHtml(item.name) + '" onchange="renameFixedExpense(' + i + ', this.value)">';
-    html += '<input type="text" inputmode="decimal" class="fixed-amount" value="' + item.amount + '" onchange="updateFixedExpenseAmount(' + i + ', this.value)">';
-    html += '<button class="btn-inline" onclick="removeFixedExpense(' + i + ')">&#215;</button>';
-    html += '</div>';
-    total += parseFloat(item.amount) || 0;
-  }
-
-  html += '<div class="add-fixed-bar">';
-  html += '<input type="text" class="add-fixed-input" id="newFixedName" placeholder="New fixed expense...">';
-  html += '<input type="text" class="add-fixed-amt" id="newFixedAmt" placeholder="Amount">';
-  html += '<button class="btn-add-fixed" onclick="addFixedExpenseFromUI()">Add</button>';
-  html += '</div>';
-
-  html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(total) + '</span></div>';
-  html += '</div>';
-  return html;
-}
-
-function renderSummaryTable(month, config) {
-  var html = '<div class="section-card">';
-  html += '<div class="card-header"><span class="card-title">Expenditure Summary</span></div>';
-  html += '<table class="summary-table">';
-  html += '<thead><tr><th>Category</th><th class="amount-cell">Amount</th><th class="budget-cell">Budgeted</th></tr></thead>';
-  html += '<tbody>';
-
-  var grandTotal = 0;
-  var budgetTotal = 0;
-
-  for (var i = 0; i < config.categories.length; i++) {
-    var cat = config.categories[i];
-    var items = month.expenditures[cat];
-    var actual = 0;
-    for (var e = 0; e < items.length; e++) {
-      actual += parseFloat(items[e].amount) || 0;
-    }
-    var budget = month.budgets[cat] || 0;
-    grandTotal += actual;
-    budgetTotal += parseFloat(budget) || 0;
-
-    var diffClass = '';
-    if (actual > budget && budget > 0) diffClass = ' over-budget';
-    else if (actual <= budget && budget > 0) diffClass = ' under-budget';
-
-    html += '<tr>';
-    html += '<td>' + escapeHtml(cat) + '</td>';
-    html += '<td class="amount-cell' + diffClass + '">' + formatMoney(actual) + '</td>';
-    html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + (budget || '') + '" onchange="updateBudget(' + "'" + escapeJs(cat) + "'" + ',this.value)"></td>';
-    html += '</tr>';
-  }
-
-  var fixedItems = month.expenditures['Fixed Expenses'];
-  var fixedTotal = 0;
-  for (var f = 0; f < fixedItems.length; f++) {
-    fixedTotal += parseFloat(fixedItems[f].amount) || 0;
-  }
-  grandTotal += fixedTotal;
-  var fixedBudget = month.budgets['Fixed Expenses'] || 0;
-  budgetTotal += parseFloat(fixedBudget) || 0;
-
-  html += '<tr>';
-  html += '<td>Fixed Expenses</td>';
-  html += '<td class="amount-cell">' + formatMoney(fixedTotal) + '</td>';
-  html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + (fixedBudget || '') + '" onchange="updateBudget(' + "'" + 'Fixed Expenses' + "'" + ',this.value)"></td>';
-  html += '</tr>';
-
-  html += '</tbody>';
-  html += '</table>';
-
-  html += '<div class="grand-total">';
-  html += '<div class="grand-total-label">Total Expenses</div>';
-  html += '<div class="grand-total-value">' + formatMoney(grandTotal) + '</div>';
-  html += '</div>';
-
-  html += '<div class="ps-note">P.S. The evaluation of expenses is based from the 26th of each month.</div>';
-  html += '</div>';
-  return html;
-}
-
-// ============================================================
-// ESCAPE HELPERS
+// ESCAPE HELPERS (HTML-ATTRIBUTE SAFE)
 // ============================================================
 function escapeHtml(str) {
-  if (!str) return '';
+  if (str === null || str === undefined) return '';
+  str = String(str);
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
 function escapeJs(str) {
-  if (!str) return '';
-  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\\n/g, '\\n').replace(/\\r/g, '\\r');
+  if (str === null || str === undefined) return '';
+  str = String(str);
+  // For use inside HTML onclick="..." attributes where the outer quote is double
+  // We need to escape backslashes, single quotes (used as JS string delimiters), and newlines
+  return str.replace(/\/g, '\\').replace(/'/g, "\'").replace(/
+/g, '\n').replace(/
+/g, '\r');
 }
 
+function attrEscape(str) {
+  // For use inside HTML attributes directly (not inside JS strings)
+  if (str === null || str === undefined) return '';
+  str = String(str);
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ============================================================
+// RENDERING (BULLETPROOF)
+// ============================================================
+function renderMonthBar() {
+  try {
+    var bar = document.getElementById('monthBar');
+    if (!bar) return;
+    var html = '';
+    var months = sortMonthsChronologically(Object.keys(appData.months || {}));
+    for (var i = 0; i < months.length; i++) {
+      var m = months[i];
+      var active = m === currentMonth ? ' active' : '';
+      html += '<button class="month-pill' + active + '" onclick="switchMonth(' + "'" + escapeJs(m) + "'" + ')">' + escapeHtml(m) + '</button>';
+    }
+    html += '<button class="month-pill add-btn" onclick="addMonth()">+ Month</button>';
+    bar.innerHTML = html;
+  } catch (e) {
+    console.error('renderMonthBar error:', e);
+  }
+}
+
+function renderMonth() {
+  var container = document.getElementById('mainContent');
+  if (!container) return;
+  try {
+    var month = appData.months[currentMonth];
+    var config = appData.config;
+    if (!month || !config) {
+      container.innerHTML = '<div style="padding:40px;text-align:center;color:#6b6b7b;">No data available for this month.</div>';
+      return;
+    }
+
+    var appTitle = document.getElementById('appTitle');
+    if (appTitle) appTitle.textContent = config.appName || 'My Finances';
+
+    var html = '';
+
+    // --- INCOME SECTION ---
+    html += '<div class="section-card">';
+    html += '<div class="card-header"><span class="card-title">Income</span></div>';
+    var salaryTotal = 0;
+    var sources = config.salarySources || [];
+    for (var i = 0; i < sources.length; i++) {
+      var src = sources[i];
+      var val = (month.salary && month.salary[src] !== undefined) ? month.salary[src] : '';
+      html += '<div class="salary-row">';
+      html += '<div class="inline-edit-wrap">';
+      html += '<input type="text" class="salary-label" value="' + attrEscape(src) + '" onchange="renameSalarySource(' + i + ', this.value)" />';
+      html += '<button class="btn-inline" onclick="removeSalarySource(' + i + ')">&#215;</button>';
+      html += '</div>';
+      html += '<input type="text" inputmode="decimal" class="salary-input" value="' + attrEscape(val) + '" onchange="updateSalary(' + "'" + escapeJs(src) + "'" + ',this.value)">';
+      html += '</div>';
+      if (val) salaryTotal += parseFloat(val) || 0;
+    }
+    html += '<div class="add-salary-bar">';
+    html += '<input type="text" class="add-salary-input" id="newSalaryName" placeholder="New income source...">';
+    html += '<button class="btn-add-salary" onclick="addSalarySourceFromUI()">Add</button>';
+    html += '</div>';
+    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total Income</span><span class="card-total">' + formatMoney(salaryTotal) + '</span></div>';
+    html += '</div>';
+
+    // --- EXPENSE CATEGORIES ---
+    var cats = config.categories || [];
+    for (var c = 0; c < cats.length; c++) {
+      var cat = cats[c];
+      var items = (month.expenditures && month.expenditures[cat]) || [];
+      html += renderCategoryCard(cat, items, c);
+    }
+
+    // --- ADD NEW CATEGORY BAR ---
+    html += '<div class="add-category-bar">';
+    html += '<input type="text" class="add-category-input" id="newCategoryName" placeholder="New category name...">';
+    html += '<button class="btn-add-cat" onclick="addCategoryFromUI()">Add Category</button>';
+    html += '</div>';
+
+    // --- FIXED EXPENSES ---
+    var fixedItems = (month.expenditures && month.expenditures['Fixed Expenses']) || [];
+    html += renderFixedExpensesCard(fixedItems);
+
+    // --- BEGINNING BALANCE ---
+    html += '<div class="section-card">';
+    html += '<div class="card-header"><span class="card-title">Beginning Balance</span><span class="card-total">ZAR</span></div>';
+    html += '<div class="balance-grid">';
+    var begTotal = 0;
+    var banks = config.banks || [];
+    for (var b = 0; b < banks.length; b++) {
+      var bank = banks[b];
+      var val = (month.balances && month.balances.beginning && month.balances.beginning[bank] !== undefined) ? month.balances.beginning[bank] : '';
+      html += '<div class="balance-item">';
+      html += '<div class="inline-edit-wrap" style="justify-content:center;">';
+      html += '<input type="text" class="balance-label" value="' + attrEscape(bank) + '" onchange="renameBank(' + b + ', this.value)" />';
+      html += '<button class="btn-inline" onclick="removeBank(' + b + ')">&#215;</button>';
+      html += '</div>';
+      html += '<input type="text" inputmode="decimal" class="balance-input" value="' + attrEscape(val) + '" onchange="updateBalance(' + "'beginning'" + ',' + "'" + escapeJs(bank) + "'" + ',this.value)">';
+      html += '</div>';
+      if (val) begTotal += parseFloat(val) || 0;
+    }
+    html += '</div>';
+    html += '<div class="add-bank-bar">';
+    html += '<input type="text" class="add-bank-input" id="newBankName" placeholder="New bank account...">';
+    html += '<button class="btn-add-bank" onclick="addBankFromUI()">Add Bank</button>';
+    html += '</div>';
+    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(begTotal) + '</span></div>';
+    html += '</div>';
+
+    // --- ENDING BALANCE ---
+    html += '<div class="section-card">';
+    html += '<div class="card-header"><span class="card-title">Ending Balance</span><span class="card-total">ZAR</span></div>';
+    html += '<div class="balance-grid">';
+    var endTotal = 0;
+    for (var b2 = 0; b2 < banks.length; b2++) {
+      var bank2 = banks[b2];
+      var val2 = (month.balances && month.balances.ending && month.balances.ending[bank2] !== undefined) ? month.balances.ending[bank2] : '';
+      html += '<div class="balance-item">';
+      html += '<div class="inline-edit-wrap" style="justify-content:center;">';
+      html += '<input type="text" class="balance-label" value="' + attrEscape(bank2) + '" onchange="renameBank(' + b2 + ', this.value)" />';
+      html += '<button class="btn-inline" onclick="removeBank(' + b2 + ')">&#215;</button>';
+      html += '</div>';
+      html += '<input type="text" inputmode="decimal" class="balance-input" value="' + attrEscape(val2) + '" onchange="updateBalance(' + "'ending'" + ',' + "'" + escapeJs(bank2) + "'" + ',this.value)">';
+      html += '</div>';
+      if (val2) endTotal += parseFloat(val2) || 0;
+    }
+    html += '</div>';
+    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(endTotal) + '</span></div>';
+    html += '</div>';
+
+    html += renderSummaryTable(month, config);
+
+    container.innerHTML = html;
+  } catch (e) {
+    console.error('renderMonth FATAL:', e);
+    container.innerHTML =
+      '<div style="padding:40px 20px;text-align:center;">' +
+      '<div style="font-size:1.2rem;font-weight:700;color:#ff6b6b;margin-bottom:12px;">&#9888; Something went wrong</div>' +
+      '<div style="color:#8b8b9b;font-size:0.875rem;margin-bottom:20px;">The app hit an error while loading your data. Don't worry — your info is safe.</div>' +
+      '<button onclick="nuclearReset()" style="padding:12px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#89CFF0,#5DADE2);color:#0a0a0f;font-weight:600;cursor:pointer;">Reset to Default</button>' +
+      '<div style="margin-top:16px;color:#5b5b6b;font-size:0.75rem;font-family:monospace;word-break:break-all;">' + escapeHtml(String(e && e.message ? e.message : e)) + '</div>' +
+      '</div>';
+  }
+}
+
+function renderCategoryCard(cat, items, catIndex) {
+  try {
+    if (!items || !Array.isArray(items)) items = [];
+    var html = '<div class="section-card">';
+    html += '<div class="card-header">';
+    html += '<div class="inline-edit-wrap">';
+    html += '<input type="text" class="card-title" value="' + attrEscape(cat) + '" onchange="renameCategory(' + catIndex + ', this.value)" />';
+    html += '<button class="btn-inline" onclick="removeCategory(' + catIndex + ')">&#215;</button>';
+    html += '</div>';
+    html += '</div>';
+
+    var total = 0;
+    for (var j = 0; j < items.length; j++) {
+      var entry = items[j] || {};
+      var dateStr = serialToDateString(entry.date);
+      html += '<div class="row-entry">';
+      html += '<input type="text" class="row-input input-desc" value="' + attrEscape(entry.desc || '') + '" placeholder="Description" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'desc'" + ',this.value)">';
+      html += '<input type="date" class="row-input input-date" value="' + attrEscape(dateStr) + '" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'date'" + ',this.value)">';
+      html += '<input type="text" inputmode="decimal" class="row-input input-amount" value="' + attrEscape(entry.amount || '') + '" placeholder="0" onchange="updateEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ',' + "'amount'" + ',this.value)">';
+      html += '<button class="btn-delete" onclick="deleteEntry(' + "'" + escapeJs(cat) + "'" + ',' + j + ')">&#215;</button>';
+      html += '</div>';
+      if (entry.amount) total += parseFloat(entry.amount) || 0;
+    }
+    html += '<button class="btn-add" onclick="addEntry(' + "'" + escapeJs(cat) + "'" + ')">+ Add ' + escapeHtml(cat) + ' Entry</button>';
+
+    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(total) + '</span></div>';
+    html += '</div>';
+    return html;
+  } catch (e) {
+    console.error('renderCategoryCard error:', e);
+    return '<div class="section-card" style="padding:16px;color:#ff6b6b;">Error loading ' + escapeHtml(cat) + '</div>';
+  }
+}
+
+function renderFixedExpensesCard(items) {
+  try {
+    if (!items || !Array.isArray(items)) items = [];
+    var html = '<div class="section-card">';
+    html += '<div class="card-header"><span class="card-title">Fixed Expenses</span></div>';
+
+    var total = 0;
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i] || {};
+      html += '<div class="fixed-row">';
+      html += '<input type="text" class="fixed-label" value="' + attrEscape(item.name || '') + '" onchange="renameFixedExpense(' + i + ', this.value)">';
+      html += '<input type="text" inputmode="decimal" class="fixed-amount" value="' + attrEscape(item.amount !== undefined ? item.amount : '') + '" onchange="updateFixedExpenseAmount(' + i + ', this.value)">';
+      html += '<button class="btn-inline" onclick="removeFixedExpense(' + i + ')">&#215;</button>';
+      html += '</div>';
+      total += parseFloat(item.amount) || 0;
+    }
+
+    html += '<div class="add-fixed-bar">';
+    html += '<input type="text" class="add-fixed-input" id="newFixedName" placeholder="New fixed expense...">';
+    html += '<input type="text" class="add-fixed-amt" id="newFixedAmt" placeholder="Amount">';
+    html += '<button class="btn-add-fixed" onclick="addFixedExpenseFromUI()">Add</button>';
+    html += '</div>';
+
+    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(total) + '</span></div>';
+    html += '</div>';
+    return html;
+  } catch (e) {
+    console.error('renderFixedExpensesCard error:', e);
+    return '<div class="section-card" style="padding:16px;color:#ff6b6b;">Error loading Fixed Expenses</div>';
+  }
+}
+
+function renderSummaryTable(month, config) {
+  try {
+    var html = '<div class="section-card">';
+    html += '<div class="card-header"><span class="card-title">Expenditure Summary</span></div>';
+    html += '<table class="summary-table">';
+    html += '<thead><tr><th>Category</th><th class="amount-cell">Amount</th><th class="budget-cell">Budgeted</th></tr></thead>';
+    html += '<tbody>';
+
+    var grandTotal = 0;
+    var budgetTotal = 0;
+    var cats = config.categories || [];
+
+    for (var i = 0; i < cats.length; i++) {
+      var cat = cats[i];
+      var items = (month.expenditures && month.expenditures[cat]) || [];
+      var actual = 0;
+      for (var e = 0; e < items.length; e++) {
+        actual += parseFloat(items[e].amount) || 0;
+      }
+      var budget = (month.budgets && month.budgets[cat] !== undefined) ? month.budgets[cat] : 0;
+      grandTotal += actual;
+      budgetTotal += parseFloat(budget) || 0;
+
+      var diffClass = '';
+      if (actual > budget && budget > 0) diffClass = ' over-budget';
+      else if (actual <= budget && budget > 0) diffClass = ' under-budget';
+
+      html += '<tr>';
+      html += '<td>' + escapeHtml(cat) + '</td>';
+      html += '<td class="amount-cell' + diffClass + '">' + formatMoney(actual) + '</td>';
+      html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + attrEscape(budget !== undefined ? budget : '') + '" onchange="updateBudget(' + "'" + escapeJs(cat) + "'" + ',this.value)"></td>';
+      html += '</tr>';
+    }
+
+    var fixedItems = (month.expenditures && month.expenditures['Fixed Expenses']) || [];
+    var fixedTotal = 0;
+    for (var f = 0; f < fixedItems.length; f++) {
+      fixedTotal += parseFloat(fixedItems[f].amount) || 0;
+    }
+    grandTotal += fixedTotal;
+    var fixedBudget = (month.budgets && month.budgets['Fixed Expenses'] !== undefined) ? month.budgets['Fixed Expenses'] : 0;
+    budgetTotal += parseFloat(fixedBudget) || 0;
+
+    html += '<tr>';
+    html += '<td>Fixed Expenses</td>';
+    html += '<td class="amount-cell">' + formatMoney(fixedTotal) + '</td>';
+    html += '<td class="budget-cell"><input type="text" inputmode="decimal" class="budget-input" value="' + attrEscape(fixedBudget !== undefined ? fixedBudget : '') + '" onchange="updateBudget(' + "'" + 'Fixed Expenses' + "'" + ',this.value)"></td>';
+    html += '</tr>';
+
+    html += '</tbody>';
+    html += '</table>';
+
+    html += '<div class="grand-total">';
+    html += '<div class="grand-total-label">Total Expenses</div>';
+    html += '<div class="grand-total-value">' + formatMoney(grandTotal) + '</div>';
+    html += '</div>';
+
+    html += '<div class="ps-note">P.S. The evaluation of expenses is based from the 26th of each month.</div>';
+    html += '</div>';
+    return html;
+  } catch (e) {
+    console.error('renderSummaryTable error:', e);
+    return '<div class="section-card" style="padding:16px;color:#ff6b6b;">Error loading Summary</div>';
+  }
+}
+
+// --- NUCLEAR RESET ---
+function nuclearReset() {
+  if (!confirm('This will reset ALL data to defaults. Are you sure?')) return;
+  try {
+    var s = getStorage();
+    if (s) s.removeItem(STORAGE_KEY);
+  } catch (e) {}
+  memoryStore = null;
+  appData = createDefaultData();
+  currentMonth = 'May';
+  saveData();
+  renderMonthBar();
+  renderMonth();
+  showToast('Data reset to defaults');
+}
 
 // ============================================================
 // DATA OPERATIONS
 // ============================================================
 function updateSalary(source, value) {
-  appData.months[currentMonth].salary[source] = value;
-  saveData();
-  renderMonth();
+  try {
+    if (appData.months[currentMonth] && appData.months[currentMonth].salary) {
+      appData.months[currentMonth].salary[source] = value;
+    }
+    saveData();
+    renderMonth();
+  } catch (e) { console.error(e); }
 }
 
 function updateBalance(type, bank, value) {
-  appData.months[currentMonth].balances[type][bank] = value;
-  saveData();
-  renderMonth();
+  try {
+    var month = appData.months[currentMonth];
+    if (month && month.balances && month.balances[type]) {
+      month.balances[type][bank] = value;
+    }
+    saveData();
+    renderMonth();
+  } catch (e) { console.error(e); }
 }
 
 function updateEntry(cat, index, field, value) {
-  var month = appData.months[currentMonth];
-  if (field === 'date') {
-    month.expenditures[cat][index].date = dateToSerial(value);
-  } else {
-    month.expenditures[cat][index][field] = value;
-  }
-  saveData();
-  renderMonth();
+  try {
+    var month = appData.months[currentMonth];
+    if (!month || !month.expenditures || !month.expenditures[cat]) return;
+    if (field === 'date') {
+      month.expenditures[cat][index].date = dateToSerial(value);
+    } else {
+      month.expenditures[cat][index][field] = value;
+    }
+    saveData();
+    renderMonth();
+  } catch (e) { console.error(e); }
 }
 
 function addEntry(cat) {
-  appData.months[currentMonth].expenditures[cat].push({ desc: '', date: '', amount: '' });
-  saveData();
-  renderMonth();
+  try {
+    var month = appData.months[currentMonth];
+    if (!month.expenditures) month.expenditures = {};
+    if (!month.expenditures[cat]) month.expenditures[cat] = [];
+    month.expenditures[cat].push({ desc: '', date: '', amount: '' });
+    saveData();
+    renderMonth();
+  } catch (e) { console.error(e); }
 }
 
 function deleteEntry(cat, index) {
-  appData.months[currentMonth].expenditures[cat].splice(index, 1);
-  saveData();
-  renderMonth();
+  try {
+    var month = appData.months[currentMonth];
+    if (month && month.expenditures && month.expenditures[cat]) {
+      month.expenditures[cat].splice(index, 1);
+    }
+    saveData();
+    renderMonth();
+  } catch (e) { console.error(e); }
 }
 
 // ============================================================
 // INLINE EDITING - CATEGORIES
 // ============================================================
 function renameCategory(index, newName) {
-  newName = newName.trim();
+  newName = (newName || '').trim();
   if (!newName) {
     showToast('Category name cannot be empty');
     renderMonth();
@@ -1113,26 +1350,26 @@ function renameCategory(index, newName) {
   var oldName = config.categories[index];
   if (oldName === newName) return;
 
-  // Check for duplicate
   if (config.categories.indexOf(newName) !== -1 && config.categories.indexOf(newName) !== index) {
     showToast('Category already exists');
     renderMonth();
     return;
   }
 
-  // Update config
   config.categories[index] = newName;
-  config.budgets[newName] = config.budgets[oldName] || 0;
-  delete config.budgets[oldName];
+  if (config.budgets[oldName] !== undefined) {
+    config.budgets[newName] = config.budgets[oldName];
+    delete config.budgets[oldName];
+  }
 
-  // Update all months
   for (var m in appData.months) {
     var month = appData.months[m];
+    if (!month.expenditures) month.expenditures = {};
     if (month.expenditures[oldName]) {
       month.expenditures[newName] = month.expenditures[oldName];
       delete month.expenditures[oldName];
     }
-    if (month.budgets[oldName] !== undefined) {
+    if (month.budgets && month.budgets[oldName] !== undefined) {
       month.budgets[newName] = month.budgets[oldName];
       delete month.budgets[oldName];
     }
@@ -1156,8 +1393,9 @@ function removeCategory(index) {
   delete config.budgets[cat];
 
   for (var m in appData.months) {
-    delete appData.months[m].expenditures[cat];
-    delete appData.months[m].budgets[cat];
+    var month = appData.months[m];
+    if (month.expenditures) delete month.expenditures[cat];
+    if (month.budgets) delete month.budgets[cat];
   }
 
   saveData();
@@ -1167,7 +1405,7 @@ function removeCategory(index) {
 
 function addCategoryFromUI() {
   var input = document.getElementById('newCategoryName');
-  var name = input.value.trim();
+  var name = (input && input.value || '').trim();
   if (!name) {
     showToast('Enter a category name');
     return;
@@ -1182,10 +1420,11 @@ function addCategoryFromUI() {
   config.budgets[name] = 0;
 
   for (var m in appData.months) {
-    appData.months[m].expenditures[name] = [];
-    if (appData.months[m].budgets[name] === undefined) {
-      appData.months[m].budgets[name] = 0;
-    }
+    var month = appData.months[m];
+    if (!month.expenditures) month.expenditures = {};
+    month.expenditures[name] = [];
+    if (!month.budgets) month.budgets = {};
+    if (month.budgets[name] === undefined) month.budgets[name] = 0;
   }
 
   saveData();
@@ -1197,15 +1436,19 @@ function addCategoryFromUI() {
 // INLINE EDITING - FIXED EXPENSES
 // ============================================================
 function renameFixedExpense(index, newName) {
-  newName = newName.trim();
+  newName = (newName || '').trim();
   if (!newName) {
     showToast('Name cannot be empty');
     renderMonth();
     return;
   }
-  appData.config.fixedExpenses[index].name = newName;
+  var cfg = appData.config;
+  if (cfg.fixedExpenses[index]) cfg.fixedExpenses[index].name = newName;
   for (var m in appData.months) {
-    appData.months[m].expenditures['Fixed Expenses'][index].name = newName;
+    var month = appData.months[m];
+    if (month.expenditures && month.expenditures['Fixed Expenses'] && month.expenditures['Fixed Expenses'][index]) {
+      month.expenditures['Fixed Expenses'][index].name = newName;
+    }
   }
   saveData();
   renderMonth();
@@ -1213,9 +1456,13 @@ function renameFixedExpense(index, newName) {
 
 function updateFixedExpenseAmount(index, value) {
   var amt = parseFloat(value) || 0;
-  appData.config.fixedExpenses[index].amount = amt;
+  var cfg = appData.config;
+  if (cfg.fixedExpenses[index]) cfg.fixedExpenses[index].amount = amt;
   for (var m in appData.months) {
-    appData.months[m].expenditures['Fixed Expenses'][index].amount = amt;
+    var month = appData.months[m];
+    if (month.expenditures && month.expenditures['Fixed Expenses'] && month.expenditures['Fixed Expenses'][index]) {
+      month.expenditures['Fixed Expenses'][index].amount = amt;
+    }
   }
   saveData();
   renderMonth();
@@ -1223,9 +1470,13 @@ function updateFixedExpenseAmount(index, value) {
 }
 
 function removeFixedExpense(index) {
-  appData.config.fixedExpenses.splice(index, 1);
+  var cfg = appData.config;
+  cfg.fixedExpenses.splice(index, 1);
   for (var m in appData.months) {
-    appData.months[m].expenditures['Fixed Expenses'].splice(index, 1);
+    var month = appData.months[m];
+    if (month.expenditures && month.expenditures['Fixed Expenses']) {
+      month.expenditures['Fixed Expenses'].splice(index, 1);
+    }
   }
   saveData();
   renderMonth();
@@ -1235,15 +1486,19 @@ function removeFixedExpense(index) {
 function addFixedExpenseFromUI() {
   var nameInput = document.getElementById('newFixedName');
   var amtInput = document.getElementById('newFixedAmt');
-  var name = nameInput.value.trim();
-  var amt = parseFloat(amtInput.value) || 0;
+  var name = (nameInput && nameInput.value || '').trim();
+  var amt = parseFloat(amtInput && amtInput.value) || 0;
   if (!name) {
     showToast('Enter a name');
     return;
   }
-  appData.config.fixedExpenses.push({ name: name, amount: amt });
+  var cfg = appData.config;
+  cfg.fixedExpenses.push({ name: name, amount: amt });
   for (var m in appData.months) {
-    appData.months[m].expenditures['Fixed Expenses'].push({ name: name, amount: amt });
+    var month = appData.months[m];
+    if (!month.expenditures) month.expenditures = {};
+    if (!month.expenditures['Fixed Expenses']) month.expenditures['Fixed Expenses'] = [];
+    month.expenditures['Fixed Expenses'].push({ name: name, amount: amt });
   }
   saveData();
   renderMonth();
@@ -1254,7 +1509,7 @@ function addFixedExpenseFromUI() {
 // INLINE EDITING - SALARY SOURCES
 // ============================================================
 function renameSalarySource(index, newName) {
-  newName = newName.trim();
+  newName = (newName || '').trim();
   if (!newName) {
     showToast('Name cannot be empty');
     renderMonth();
@@ -1268,6 +1523,7 @@ function renameSalarySource(index, newName) {
 
   for (var m in appData.months) {
     var month = appData.months[m];
+    if (!month.salary) month.salary = {};
     month.salary[newName] = month.salary[oldName] || '';
     delete month.salary[oldName];
   }
@@ -1288,7 +1544,8 @@ function removeSalarySource(index) {
 
   config.salarySources.splice(index, 1);
   for (var m in appData.months) {
-    delete appData.months[m].salary[name];
+    var month = appData.months[m];
+    if (month.salary) delete month.salary[name];
   }
 
   saveData();
@@ -1298,7 +1555,7 @@ function removeSalarySource(index) {
 
 function addSalarySourceFromUI() {
   var input = document.getElementById('newSalaryName');
-  var name = input.value.trim();
+  var name = (input && input.value || '').trim();
   if (!name) {
     showToast('Enter a name');
     return;
@@ -1310,7 +1567,9 @@ function addSalarySourceFromUI() {
   }
   config.salarySources.push(name);
   for (var m in appData.months) {
-    appData.months[m].salary[name] = '';
+    var month = appData.months[m];
+    if (!month.salary) month.salary = {};
+    month.salary[name] = '';
   }
   saveData();
   renderMonth();
@@ -1321,7 +1580,7 @@ function addSalarySourceFromUI() {
 // INLINE EDITING - BANKS
 // ============================================================
 function renameBank(index, newName) {
-  newName = newName.trim();
+  newName = (newName || '').trim();
   if (!newName) {
     showToast('Name cannot be empty');
     renderMonth();
@@ -1335,6 +1594,9 @@ function renameBank(index, newName) {
 
   for (var m in appData.months) {
     var month = appData.months[m];
+    if (!month.balances) month.balances = { beginning: {}, ending: {} };
+    if (!month.balances.beginning) month.balances.beginning = {};
+    if (!month.balances.ending) month.balances.ending = {};
     month.balances.beginning[newName] = month.balances.beginning[oldName] || '';
     month.balances.ending[newName] = month.balances.ending[oldName] || '';
     delete month.balances.beginning[oldName];
@@ -1357,8 +1619,11 @@ function removeBank(index) {
 
   config.banks.splice(index, 1);
   for (var m in appData.months) {
-    delete appData.months[m].balances.beginning[name];
-    delete appData.months[m].balances.ending[name];
+    var month = appData.months[m];
+    if (month.balances) {
+      if (month.balances.beginning) delete month.balances.beginning[name];
+      if (month.balances.ending) delete month.balances.ending[name];
+    }
   }
 
   saveData();
@@ -1368,7 +1633,7 @@ function removeBank(index) {
 
 function addBankFromUI() {
   var input = document.getElementById('newBankName');
-  var name = input.value.trim();
+  var name = (input && input.value || '').trim();
   if (!name) {
     showToast('Enter a bank name');
     return;
@@ -1380,8 +1645,12 @@ function addBankFromUI() {
   }
   config.banks.push(name);
   for (var m in appData.months) {
-    appData.months[m].balances.beginning[name] = '';
-    appData.months[m].balances.ending[name] = '';
+    var month = appData.months[m];
+    if (!month.balances) month.balances = { beginning: {}, ending: {} };
+    if (!month.balances.beginning) month.balances.beginning = {};
+    if (!month.balances.ending) month.balances.ending = {};
+    month.balances.beginning[name] = '';
+    month.balances.ending[name] = '';
   }
   saveData();
   renderMonth();
@@ -1403,6 +1672,7 @@ function renameApp() {
 
 function showToast(msg) {
   var toast = document.getElementById('toast');
+  if (!toast) return;
   toast.textContent = msg;
   toast.classList.add('show');
   setTimeout(function() {
