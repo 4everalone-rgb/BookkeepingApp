@@ -646,8 +646,7 @@ body {
 
 <div class="toast" id="toast"></div>
 
-<script><script>
-// ============================================================
+<script>// ============================================================
 // NUCLEAR-SAFE DATA LAYER
 // ============================================================
 var STORAGE_KEY = 'genericFinances2026_v2';
@@ -677,10 +676,9 @@ var DEFAULT_CONFIG = {
 
 var appData = null;
 var currentMonth = null;
-var storageMode = 'localStorage'; // 'localStorage', 'sessionStorage', 'memory'
+var storageMode = 'localStorage';
 var memoryStore = null;
 
-// --- STORAGE AVAILABILITY DETECTOR ---
 function isStorageAvailable(type) {
   try {
     var storage = window[type];
@@ -717,11 +715,10 @@ function storageSetItem(key, value) {
       s.setItem(key, value);
       return true;
     } catch (e) {
-      // Quota exceeded or private mode — fall back to memory
       storageMode = 'memory';
       if (!memoryStore) memoryStore = {};
       memoryStore[key] = value;
-      showToast('Storage limited — using memory mode');
+      showToast('Storage limited - using memory mode');
       return true;
     }
   }
@@ -730,7 +727,6 @@ function storageSetItem(key, value) {
   return true;
 }
 
-// --- DEFAULT DATA FACTORY ---
 function createDefaultData() {
   var data = {
     config: deepClone(DEFAULT_CONFIG),
@@ -780,14 +776,12 @@ function deepClone(obj) {
   return cloned;
 }
 
-// --- DATA VALIDATION & REPAIR (NUCLEAR) ---
 function validateAndRepairData(data) {
   if (!data || typeof data !== 'object') return createDefaultData();
   if (!data.config || typeof data.config !== 'object') data.config = deepClone(DEFAULT_CONFIG);
   if (!data.months || typeof data.months !== 'object') data.months = {};
 
   var cfg = data.config;
-  // Ensure config arrays exist
   if (!cfg.categories || !Array.isArray(cfg.categories) || cfg.categories.length === 0) {
     cfg.categories = deepClone(DEFAULT_CONFIG.categories);
   }
@@ -807,7 +801,6 @@ function validateAndRepairData(data) {
     cfg.appName = DEFAULT_CONFIG.appName;
   }
 
-  // Repair every month to match current config
   var monthKeys = Object.keys(data.months);
   if (monthKeys.length === 0) {
     data.months['May'] = createMonthData('May', cfg);
@@ -826,7 +819,6 @@ function validateAndRepairData(data) {
       if (!month.balances.ending || typeof month.balances.ending !== 'object') month.balances.ending = {};
       if (!month.budgets || typeof month.budgets !== 'object') month.budgets = {};
 
-      // Ensure all categories have expenditure arrays
       for (var c = 0; c < cfg.categories.length; c++) {
         var cat = cfg.categories[c];
         if (!Array.isArray(month.expenditures[cat])) {
@@ -836,7 +828,6 @@ function validateAndRepairData(data) {
           month.budgets[cat] = cfg.budgets[cat] || 0;
         }
       }
-      // Ensure Fixed Expenses exists
       if (!Array.isArray(month.expenditures['Fixed Expenses'])) {
         month.expenditures['Fixed Expenses'] = deepClone(cfg.fixedExpenses || []);
       }
@@ -844,13 +835,11 @@ function validateAndRepairData(data) {
         month.budgets['Fixed Expenses'] = cfg.budgets['Fixed Expenses'] || 0;
       }
 
-      // Ensure all salary sources exist
       for (var s = 0; s < cfg.salarySources.length; s++) {
         var src = cfg.salarySources[s];
         if (month.salary[src] === undefined) month.salary[src] = '';
       }
 
-      // Ensure all banks exist in balances
       for (var b = 0; b < cfg.banks.length; b++) {
         var bank = cfg.banks[b];
         if (month.balances.beginning[bank] === undefined) month.balances.beginning[bank] = '';
@@ -875,7 +864,6 @@ function initData() {
     console.error('Init error:', e);
     appData = createDefaultData();
   }
-  // Ensure currentMonth is valid
   var keys = Object.keys(appData.months || {});
   if (!currentMonth || !appData.months[currentMonth]) {
     currentMonth = keys[0] || 'May';
@@ -891,9 +879,6 @@ function saveData() {
   }
 }
 
-// ============================================================
-// MONTH MANAGEMENT
-// ============================================================
 function addMonth() {
   var monthInput = prompt('Enter month name (e.g. January, February, March...):');
   if (!monthInput) return;
@@ -931,9 +916,6 @@ function sortMonthsChronologically(months) {
   });
 }
 
-// ============================================================
-// UTILITIES
-// ============================================================
 function dateToSerial(dateStr) {
   if (!dateStr) return '';
   var d = new Date(dateStr);
@@ -961,9 +943,6 @@ function formatMoney(val) {
   return num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
 
-// ============================================================
-// ESCAPE HELPERS (HTML-ATTRIBUTE SAFE)
-// ============================================================
 function escapeHtml(str) {
   if (str === null || str === undefined) return '';
   str = String(str);
@@ -973,23 +952,15 @@ function escapeHtml(str) {
 function escapeJs(str) {
   if (str === null || str === undefined) return '';
   str = String(str);
-  // For use inside HTML onclick="..." attributes where the outer quote is double
-  // We need to escape backslashes, single quotes (used as JS string delimiters), and newlines
-  return str.replace(/\/g, '\\').replace(/'/g, "\'").replace(/
-/g, '\n').replace(/
-/g, '\r');
+  return str.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
 }
 
 function attrEscape(str) {
-  // For use inside HTML attributes directly (not inside JS strings)
   if (str === null || str === undefined) return '';
   str = String(str);
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-// ============================================================
-// RENDERING (BULLETPROOF)
-// ============================================================
 function renderMonthBar() {
   try {
     var bar = document.getElementById('monthBar');
@@ -1024,7 +995,6 @@ function renderMonth() {
 
     var html = '';
 
-    // --- INCOME SECTION ---
     html += '<div class="section-card">';
     html += '<div class="card-header"><span class="card-title">Income</span></div>';
     var salaryTotal = 0;
@@ -1048,7 +1018,6 @@ function renderMonth() {
     html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total Income</span><span class="card-total">' + formatMoney(salaryTotal) + '</span></div>';
     html += '</div>';
 
-    // --- EXPENSE CATEGORIES ---
     var cats = config.categories || [];
     for (var c = 0; c < cats.length; c++) {
       var cat = cats[c];
@@ -1056,17 +1025,14 @@ function renderMonth() {
       html += renderCategoryCard(cat, items, c);
     }
 
-    // --- ADD NEW CATEGORY BAR ---
     html += '<div class="add-category-bar">';
     html += '<input type="text" class="add-category-input" id="newCategoryName" placeholder="New category name...">';
     html += '<button class="btn-add-cat" onclick="addCategoryFromUI()">Add Category</button>';
     html += '</div>';
 
-    // --- FIXED EXPENSES ---
     var fixedItems = (month.expenditures && month.expenditures['Fixed Expenses']) || [];
     html += renderFixedExpensesCard(fixedItems);
 
-    // --- BEGINNING BALANCE ---
     html += '<div class="section-card">';
     html += '<div class="card-header"><span class="card-title">Beginning Balance</span><span class="card-total">ZAR</span></div>';
     html += '<div class="balance-grid">';
@@ -1092,7 +1058,6 @@ function renderMonth() {
     html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(begTotal) + '</span></div>';
     html += '</div>';
 
-    // --- ENDING BALANCE ---
     html += '<div class="section-card">';
     html += '<div class="card-header"><span class="card-title">Ending Balance</span><span class="card-total">ZAR</span></div>';
     html += '<div class="balance-grid">';
@@ -1121,7 +1086,7 @@ function renderMonth() {
     container.innerHTML =
       '<div style="padding:40px 20px;text-align:center;">' +
       '<div style="font-size:1.2rem;font-weight:700;color:#ff6b6b;margin-bottom:12px;">&#9888; Something went wrong</div>' +
-      '<div style="color:#8b8b9b;font-size:0.875rem;margin-bottom:20px;">The app hit an error while loading your data. Don't worry — your info is safe.</div>' +
+      '<div style="color:#8b8b9b;font-size:0.875rem;margin-bottom:20px;">The app hit an error while loading your data. Do not worry - your info is safe.</div>' +
       '<button onclick="nuclearReset()" style="padding:12px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#89CFF0,#5DADE2);color:#0a0a0f;font-weight:600;cursor:pointer;">Reset to Default</button>' +
       '<div style="margin-top:16px;color:#5b5b6b;font-size:0.75rem;font-family:monospace;word-break:break-all;">' + escapeHtml(String(e && e.message ? e.message : e)) + '</div>' +
       '</div>';
@@ -1260,7 +1225,6 @@ function renderSummaryTable(month, config) {
   }
 }
 
-// --- NUCLEAR RESET ---
 function nuclearReset() {
   if (!confirm('This will reset ALL data to defaults. Are you sure?')) return;
   try {
@@ -1276,9 +1240,6 @@ function nuclearReset() {
   showToast('Data reset to defaults');
 }
 
-// ============================================================
-// DATA OPERATIONS
-// ============================================================
 function updateSalary(source, value) {
   try {
     if (appData.months[currentMonth] && appData.months[currentMonth].salary) {
@@ -1336,9 +1297,6 @@ function deleteEntry(cat, index) {
   } catch (e) { console.error(e); }
 }
 
-// ============================================================
-// INLINE EDITING - CATEGORIES
-// ============================================================
 function renameCategory(index, newName) {
   newName = (newName || '').trim();
   if (!newName) {
@@ -1432,9 +1390,6 @@ function addCategoryFromUI() {
   showToast('Category added');
 }
 
-// ============================================================
-// INLINE EDITING - FIXED EXPENSES
-// ============================================================
 function renameFixedExpense(index, newName) {
   newName = (newName || '').trim();
   if (!newName) {
@@ -1505,9 +1460,6 @@ function addFixedExpenseFromUI() {
   showToast('Fixed expense added');
 }
 
-// ============================================================
-// INLINE EDITING - SALARY SOURCES
-// ============================================================
 function renameSalarySource(index, newName) {
   newName = (newName || '').trim();
   if (!newName) {
@@ -1576,9 +1528,6 @@ function addSalarySourceFromUI() {
   showToast('Income source added');
 }
 
-// ============================================================
-// INLINE EDITING - BANKS
-// ============================================================
 function renameBank(index, newName) {
   newName = (newName || '').trim();
   if (!newName) {
@@ -1657,9 +1606,6 @@ function addBankFromUI() {
   showToast('Bank added');
 }
 
-// ============================================================
-// APP NAME
-// ============================================================
 function renameApp() {
   var newName = prompt('Enter app name:', appData.config.appName);
   if (newName && newName.trim()) {
