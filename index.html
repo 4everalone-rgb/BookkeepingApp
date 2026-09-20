@@ -72,36 +72,44 @@ body {
   padding: 8px 12px;
   display: flex;
   gap: 8px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  align-items: center;
   border-bottom: 1px solid #2a2a3a;
 }
-.month-bar::-webkit-scrollbar { display: none; }
-.month-pill {
-  flex-shrink: 0;
-  padding: 8px 16px;
+.pill-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  min-width: 0;
+  padding: 8px 28px 8px 14px;
   border-radius: 20px;
   border: 1px solid #2a2a3a;
+  background-color: #1a1a24;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b8b9b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 14px 14px;
+  color: #e0e0e8;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+}
+.pill-select:focus { border-color: #89CFF0; }
+.sel-year { flex: 0 1 auto; }
+.sel-month { flex: 1 1 auto; }
+.btn-add-month {
+  flex-shrink: 0;
+  padding: 9px 12px;
+  border-radius: 20px;
+  border: 1px dashed #5DADE2;
   background: #1a1a24;
-  color: #8b8b9b;
+  color: #5DADE2;
   font-family: 'Space Grotesk', sans-serif;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
   white-space: nowrap;
-}
-.month-pill.active {
-  background: linear-gradient(135deg, #89CFF0 0%, #5DADE2 100%);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 4px 15px rgba(93, 173, 226, 0.3);
-}
-.month-pill.add-btn {
-  border-style: dashed;
-  border-color: #5DADE2;
-  color: #5DADE2;
 }
 .main-content {
   padding: 16px;
@@ -225,46 +233,6 @@ body {
   outline: none;
 }
 .salary-input:focus { border-color: #89CFF0; }
-.balance-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 12px 16px;
-}
-.balance-item {
-  background: #0f0f18;
-  border: 1px solid #2a2a3a;
-  border-radius: 10px;
-  padding: 10px;
-  text-align: center;
-}
-.balance-label {
-  font-size: 0.75rem;
-  color: #6b6b7b;
-  margin-bottom: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: transparent;
-  border: none;
-  outline: none;
-  width: 100%;
-  text-align: center;
-  font-family: 'Inter', sans-serif;
-}
-.balance-label:focus { color: #89CFF0; }
-.balance-input {
-  width: 100%;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  padding: 6px;
-  color: #f0f0f8;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  outline: none;
-}
-.balance-input:focus { border-color: #89CFF0; background: #151520; }
 .fixed-row {
   display: flex;
   justify-content: space-between;
@@ -496,6 +464,7 @@ body {
 }
 .add-category-input {
   flex: 1;
+  min-width: 0;
   background: #0f0f18;
   border: 1px dashed #5DADE2;
   border-radius: 8px;
@@ -517,36 +486,6 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
-.add-bank-bar {
-  padding: 10px 16px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  border-top: 1px solid #2a2a3a;
-}
-.add-bank-input {
-  flex: 1;
-  background: #0f0f18;
-  border: 1px dashed #5DADE2;
-  border-radius: 8px;
-  padding: 8px 10px;
-  color: #e0e0e8;
-  font-size: 0.875rem;
-  outline: none;
-}
-.add-bank-input:focus { border-color: #89CFF0; border-style: solid; }
-.btn-add-bank {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: none;
-  background: linear-gradient(135deg, #89CFF0 0%, #5DADE2 100%);
-  color: #0a0a0f;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  flex-shrink: 0;
-}
 .add-salary-bar {
   padding: 10px 16px;
   display: flex;
@@ -556,6 +495,7 @@ body {
 }
 .add-salary-input {
   flex: 1;
+  min-width: 0;
   background: #0f0f18;
   border: 1px dashed #5DADE2;
   border-radius: 8px;
@@ -586,6 +526,7 @@ body {
 }
 .add-fixed-input {
   flex: 1;
+  min-width: 0;
   background: #0f0f18;
   border: 1px dashed #5DADE2;
   border-radius: 8px;
@@ -597,6 +538,7 @@ body {
 .add-fixed-input:focus { border-color: #89CFF0; border-style: solid; }
 .add-fixed-amt {
   width: 80px;
+  min-width: 0;
   background: #0f0f18;
   border: 1px dashed #5DADE2;
   border-radius: 8px;
@@ -619,6 +561,91 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
+.btn-backup {
+  padding: 14px 12px;
+  font-size: 0.85rem;
+}
+.save-error-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 400;
+  display: none;
+  padding: 10px 14px;
+  background: #7a1f1f;
+  border-bottom: 1px solid #ff6b6b;
+  color: #ffe0e0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  text-align: center;
+}
+.save-error-banner.show { display: block; }
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 300;
+  background: rgba(5, 5, 10, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.modal-card {
+  width: 100%;
+  max-width: 320px;
+  background: #1a1a24;
+  border: 1px solid #2a2a3a;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+}
+.modal-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #f0f0f8;
+  margin-bottom: 14px;
+}
+.modal-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.modal-label {
+  font-size: 0.8rem;
+  color: #6b6b7b;
+  width: 52px;
+  flex-shrink: 0;
+}
+.modal-select { flex: 1 1 auto; }
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+.btn-modal {
+  flex: 1;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: 1px solid #2a2a3a;
+  background: #0f0f18;
+  color: #8b8b9b;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-modal-primary {
+  border: none;
+  background: linear-gradient(135deg, #89CFF0 0%, #5DADE2 100%);
+  color: #0a0a0f;
+}
+.modal-file { display: none; }
 @media (min-width: 768px) {
   .main-content { max-width: 600px; margin: 0 auto; }
 }
@@ -628,11 +655,13 @@ body {
 </head>
 <body>
 
+<div class="save-error-banner" id="saveErrorBanner">Couldn't save - your latest changes may be lost. Use Backup to download your data.</div>
+
 <header class="app-header">
   <img src="data:image/png;base64,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" class="app-logo" alt="My Finances Logo" />
   <div>
     <div class="app-title" id="appTitle">My Finances</div>
-    <div class="app-subtitle">Personal Bookkeeping 2026</div>
+    <div class="app-subtitle" id="appSubtitle">Personal Bookkeeping 2026</div>
   </div>
 </header>
 
@@ -641,8 +670,11 @@ body {
 
 <div class="export-bar">
   <button class="btn-export" onclick="exportToExcel()">Export to Excel</button>
+  <button class="btn-settings btn-backup" onclick="openBackupModal()">Backup</button>
   <button class="btn-settings" onclick="renameApp()">&#9998;</button>
 </div>
+
+<div id="modalHost"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -650,11 +682,12 @@ body {
 // NUCLEAR-SAFE DATA LAYER
 // ============================================================
 var STORAGE_KEY = 'genericFinances2026_v2';
+var DATA_VERSION = 3;
+var LEGACY_YEAR = 2026;
 var MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 
 var DEFAULT_CONFIG = {
   appName: 'My Finances',
-  banks: ['Absa', 'FNB'],
   salarySources: ['Primary Income', 'Side Income'],
   categories: ['Food & Dining', 'Transport', 'Groceries', 'Entertainment', 'Health & Fitness', 'Shopping', 'Bills & Utilities', 'Miscellaneous'],
   fixedExpenses: [
@@ -713,36 +746,132 @@ function storageSetItem(key, value) {
   if (s) {
     try {
       s.setItem(key, value);
+      hideSaveError();
       return true;
     } catch (e) {
-      storageMode = 'memory';
-      if (!memoryStore) memoryStore = {};
-      memoryStore[key] = value;
-      showToast('Storage limited - using memory mode');
-      return true;
+      // Do NOT switch to memory mode - the next save tries localStorage again.
+      console.error('Save failed:', e);
+      showSaveError();
+      return false;
     }
   }
+  // localStorage was unavailable at load - memory fallback.
   if (!memoryStore) memoryStore = {};
   memoryStore[key] = value;
   return true;
+}
+
+function showSaveError() {
+  var banner = document.getElementById('saveErrorBanner');
+  if (banner) banner.classList.add('show');
+}
+
+function hideSaveError() {
+  var banner = document.getElementById('saveErrorBanner');
+  if (banner) banner.classList.remove('show');
+}
+
+// Raw backups bypass storageSetItem on purpose: they must hit localStorage
+// directly and fall back to a file download instead of the memory store.
+function downloadJsonString(str, filename) {
+  var blob = new Blob([str], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function backupRawData(key, raw, overwrite) {
+  if (raw === null || raw === undefined) return false;
+  try {
+    if (!overwrite && localStorage.getItem(key) !== null) return true;
+    localStorage.setItem(key, raw);
+    return true;
+  } catch (e) {
+    console.warn('Backup write failed, downloading instead:', e);
+    try { downloadJsonString(raw, key + '.json'); } catch (e2) { console.error(e2); }
+    return false;
+  }
+}
+
+function makeMonthKey(year, monthIndex) {
+  return String(year) + '-' + String(monthIndex + 1).padStart(2, '0');
+}
+
+function parseMonthKey(key) {
+  var m = /^(\d{4})-(\d{2})$/.exec(key === null || key === undefined ? '' : String(key));
+  if (!m) return null;
+  var mi = parseInt(m[2], 10) - 1;
+  if (mi < 0 || mi > 11) return null;
+  return { year: parseInt(m[1], 10), monthIndex: mi };
+}
+
+function monthNameOf(key) {
+  var p = parseMonthKey(key);
+  return p ? MONTH_NAMES[p.monthIndex] : String(key);
+}
+
+function yearOf(key) {
+  var p = parseMonthKey(key);
+  return p ? p.year : null;
+}
+
+function getSortedMonthKeys() {
+  return Object.keys((appData && appData.months) || {}).sort();
+}
+
+function getYears() {
+  var keys = getSortedMonthKeys();
+  var years = [];
+  for (var i = 0; i < keys.length; i++) {
+    var y = yearOf(keys[i]);
+    if (y !== null && years.indexOf(y) === -1) years.push(y);
+  }
+  years.sort(function(a, b) { return a - b; });
+  return years;
+}
+
+function getMonthKeysForYear(year) {
+  var keys = getSortedMonthKeys();
+  var out = [];
+  for (var i = 0; i < keys.length; i++) {
+    if (yearOf(keys[i]) === parseInt(year, 10)) out.push(keys[i]);
+  }
+  return out;
+}
+
+function latestMonthKey() {
+  var keys = getSortedMonthKeys();
+  return keys.length ? keys[keys.length - 1] : null;
+}
+
+function currentCalendarMonthKey() {
+  var now = new Date();
+  return makeMonthKey(now.getFullYear(), now.getMonth());
 }
 
 function createDefaultData() {
   var data = {
     config: deepClone(DEFAULT_CONFIG),
     months: {},
-    version: 2
+    version: DATA_VERSION
   };
-  data.months['May'] = createMonthData('May', data.config);
+  var key = currentCalendarMonthKey();
+  data.months[key] = createMonthData(key, data.config);
   return data;
 }
 
-function createMonthData(monthName, config) {
+function createMonthData(monthKey, config) {
+  var parsed = parseMonthKey(monthKey);
   var month = {
-    name: monthName,
+    name: parsed ? MONTH_NAMES[parsed.monthIndex] : String(monthKey),
+    year: parsed ? parsed.year : null,
     expenditures: {},
     salary: {},
-    balances: { beginning: {}, ending: {} },
     budgets: deepClone(config.budgets || {})
   };
   var cats = config.categories || [];
@@ -753,11 +882,6 @@ function createMonthData(monthName, config) {
   var sources = config.salarySources || [];
   for (var j = 0; j < sources.length; j++) {
     month.salary[sources[j]] = '';
-  }
-  var banks = config.banks || [];
-  for (var b = 0; b < banks.length; b++) {
-    month.balances.beginning[banks[b]] = '';
-    month.balances.ending[banks[b]] = '';
   }
   return month;
 }
@@ -785,9 +909,6 @@ function validateAndRepairData(data) {
   if (!cfg.categories || !Array.isArray(cfg.categories) || cfg.categories.length === 0) {
     cfg.categories = deepClone(DEFAULT_CONFIG.categories);
   }
-  if (!cfg.banks || !Array.isArray(cfg.banks) || cfg.banks.length === 0) {
-    cfg.banks = deepClone(DEFAULT_CONFIG.banks);
-  }
   if (!cfg.salarySources || !Array.isArray(cfg.salarySources) || cfg.salarySources.length === 0) {
     cfg.salarySources = deepClone(DEFAULT_CONFIG.salarySources);
   }
@@ -803,7 +924,8 @@ function validateAndRepairData(data) {
 
   var monthKeys = Object.keys(data.months);
   if (monthKeys.length === 0) {
-    data.months['May'] = createMonthData('May', cfg);
+    var freshKey = currentCalendarMonthKey();
+    data.months[freshKey] = createMonthData(freshKey, cfg);
   } else {
     for (var m = 0; m < monthKeys.length; m++) {
       var mk = monthKeys[m];
@@ -814,10 +936,12 @@ function validateAndRepairData(data) {
       }
       if (!month.expenditures || typeof month.expenditures !== 'object') month.expenditures = {};
       if (!month.salary || typeof month.salary !== 'object') month.salary = {};
-      if (!month.balances || typeof month.balances !== 'object') month.balances = { beginning: {}, ending: {} };
-      if (!month.balances.beginning || typeof month.balances.beginning !== 'object') month.balances.beginning = {};
-      if (!month.balances.ending || typeof month.balances.ending !== 'object') month.balances.ending = {};
       if (!month.budgets || typeof month.budgets !== 'object') month.budgets = {};
+      var mkParsed = parseMonthKey(mk);
+      if (mkParsed) {
+        month.name = MONTH_NAMES[mkParsed.monthIndex];
+        month.year = mkParsed.year;
+      }
 
       for (var c = 0; c < cfg.categories.length; c++) {
         var cat = cfg.categories[c];
@@ -839,24 +963,78 @@ function validateAndRepairData(data) {
         var src = cfg.salarySources[s];
         if (month.salary[src] === undefined) month.salary[src] = '';
       }
-
-      for (var b = 0; b < cfg.banks.length; b++) {
-        var bank = cfg.banks[b];
-        if (month.balances.beginning[bank] === undefined) month.balances.beginning[bank] = '';
-        if (month.balances.ending[bank] === undefined) month.balances.ending[bank] = '';
-      }
     }
   }
 
   return data;
 }
 
+function needsMigration(data) {
+  if (!data || typeof data !== 'object') return false;
+  if (!data.version || data.version < DATA_VERSION) return true;
+  if (data.config && data.config.banks) return true;
+  var months = data.months || {};
+  for (var k in months) {
+    if (!months.hasOwnProperty(k)) continue;
+    if (months[k] && months[k].balances) return true;
+  }
+  return false;
+}
+
+// v2 -> v3: month keys become 'YYYY-MM', banks / balances are dropped.
+// Idempotent: months already keyed 'YYYY-MM' pass through untouched.
+function migrateData(data) {
+  var oldMonths = data.months || {};
+  var newMonths = {};
+  for (var k in oldMonths) {
+    if (!oldMonths.hasOwnProperty(k)) continue;
+    var key = k;
+    if (!parseMonthKey(key)) {
+      var idx = MONTH_NAMES.indexOf(k);
+      if (idx === -1) {
+        console.warn('Migration: skipping unrecognised month key "' + k + '"');
+        continue;
+      }
+      key = makeMonthKey(LEGACY_YEAR, idx);
+    }
+    var parsed = parseMonthKey(key);
+    var month = oldMonths[k];
+    if (month && typeof month === 'object') {
+      month.name = MONTH_NAMES[parsed.monthIndex];
+      month.year = parsed.year;
+      if (month.balances) delete month.balances;
+    }
+    newMonths[key] = month;
+  }
+  data.months = newMonths;
+  if (data.config && data.config.banks) delete data.config.banks;
+  data.version = DATA_VERSION;
+  return data;
+}
+
 function initData() {
   try {
     var saved = storageGetItem(STORAGE_KEY);
+    var parsed = null;
     if (saved) {
-      var parsed = JSON.parse(saved);
-      appData = validateAndRepairData(parsed);
+      try {
+        parsed = JSON.parse(saved);
+      } catch (pe) {
+        console.error('Parse error:', pe);
+        // Keep the corrupt-but-recoverable original before defaults overwrite it.
+        backupRawData(STORAGE_KEY + '_corrupt_backup', saved);
+        parsed = null;
+      }
+    }
+    if (parsed) {
+      if (needsMigration(parsed)) {
+        backupRawData(STORAGE_KEY + '_backup_premigration', saved);
+        parsed = migrateData(parsed);
+        appData = validateAndRepairData(parsed);
+        saveData();
+      } else {
+        appData = validateAndRepairData(parsed);
+      }
     } else {
       appData = createDefaultData();
     }
@@ -864,9 +1042,11 @@ function initData() {
     console.error('Init error:', e);
     appData = createDefaultData();
   }
-  var keys = Object.keys(appData.months || {});
   if (!currentMonth || !appData.months[currentMonth]) {
-    currentMonth = keys[0] || 'May';
+    currentMonth = latestMonthKey() || currentCalendarMonthKey();
+    if (!appData.months[currentMonth]) {
+      appData.months[currentMonth] = createMonthData(currentMonth, appData.config);
+    }
   }
 }
 
@@ -879,24 +1059,158 @@ function saveData() {
   }
 }
 
-function addMonth() {
-  var monthInput = prompt('Enter month name (e.g. January, February, March...):');
-  if (!monthInput) return;
-  var newMonth = monthInput.trim();
-  newMonth = newMonth.charAt(0).toUpperCase() + newMonth.slice(1).toLowerCase();
-  if (MONTH_NAMES.indexOf(newMonth) === -1) {
-    showToast('Invalid month name. Use full month name like January, February, etc.');
+// First month of `year` that has no data yet, starting after the latest
+// existing month of that year. Returns -1 when the year is full.
+function firstFreeMonthIndex(year) {
+  var keys = getMonthKeysForYear(year);
+  var start = 0;
+  if (keys.length) {
+    var last = parseMonthKey(keys[keys.length - 1]);
+    if (last) start = last.monthIndex + 1;
+  }
+  for (var i = start; i < 12; i++) {
+    if (!appData.months[makeMonthKey(year, i)]) return i;
+  }
+  for (var j = 0; j < 12; j++) {
+    if (!appData.months[makeMonthKey(year, j)]) return j;
+  }
+  return -1;
+}
+
+function closeModal() {
+  var host = document.getElementById('modalHost');
+  if (host) host.innerHTML = '';
+}
+
+function openAddMonthModal() {
+  var years = getYears();
+  var calYear = new Date().getFullYear();
+  if (years.indexOf(calYear) === -1) years.push(calYear);
+  if (years.indexOf(calYear + 1) === -1) years.push(calYear + 1);
+
+  var latest = latestMonthKey();
+  var defYear = latest ? yearOf(latest) : calYear;
+  if (firstFreeMonthIndex(defYear) === -1) defYear = defYear + 1;
+  if (years.indexOf(defYear) === -1) years.push(defYear);
+  years.sort(function(a, b) { return a - b; });
+
+  var html = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">';
+  html += '<div class="modal-card">';
+  html += '<div class="modal-title">Add Month</div>';
+  html += '<div class="modal-row"><span class="modal-label">Year</span>';
+  html += '<select class="pill-select modal-select" id="addMonthYear" onchange="renderAddMonthOptions()">';
+  for (var y = 0; y < years.length; y++) {
+    html += '<option value="' + years[y] + '"' + (years[y] === defYear ? ' selected' : '') + '>' + years[y] + '</option>';
+  }
+  html += '</select></div>';
+  html += '<div class="modal-row"><span class="modal-label">Month</span>';
+  html += '<select class="pill-select modal-select" id="addMonthMonth"></select></div>';
+  html += '<div class="modal-actions">';
+  html += '<button class="btn-modal" onclick="closeModal()">Cancel</button>';
+  html += '<button class="btn-modal btn-modal-primary" onclick="confirmAddMonth()">Add</button>';
+  html += '</div></div></div>';
+
+  var host = document.getElementById('modalHost');
+  if (!host) return;
+  host.innerHTML = html;
+  renderAddMonthOptions();
+}
+
+function renderAddMonthOptions() {
+  var ySel = document.getElementById('addMonthYear');
+  var mSel = document.getElementById('addMonthMonth');
+  if (!ySel || !mSel) return;
+  var year = parseInt(ySel.value, 10);
+  var free = firstFreeMonthIndex(year);
+  var html = '';
+  if (free === -1) {
+    html = '<option value="" disabled selected>All months added</option>';
+  } else {
+    for (var i = 0; i < 12; i++) {
+      var key = makeMonthKey(year, i);
+      var taken = !!appData.months[key];
+      html += '<option value="' + key + '"' + (taken ? ' disabled' : '') + (i === free ? ' selected' : '') + '>';
+      html += MONTH_NAMES[i] + (taken ? ' (added)' : '') + '</option>';
+    }
+  }
+  mSel.innerHTML = html;
+}
+
+function confirmAddMonth() {
+  var mSel = document.getElementById('addMonthMonth');
+  var key = mSel ? mSel.value : '';
+  if (!key || appData.months[key]) {
+    showToast('All months added for that year');
     return;
   }
-  if (appData.months[newMonth]) {
-    showToast(newMonth + ' already exists');
-    return;
-  }
-  appData.months[newMonth] = createMonthData(newMonth, appData.config);
-  currentMonth = newMonth;
+  appData.months[key] = createMonthData(key, appData.config);
+  currentMonth = key;
+  closeModal();
   saveData();
   renderMonthBar();
   renderMonth();
+  showToast(monthNameOf(key) + ' ' + yearOf(key) + ' added');
+}
+
+function openBackupModal() {
+  var html = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()">';
+  html += '<div class="modal-card">';
+  html += '<div class="modal-title">Backup &amp; Restore</div>';
+  html += '<button class="btn-modal btn-modal-primary" style="width:100%;margin-bottom:8px;" onclick="downloadBackup()">Download backup</button>';
+  html += '<button class="btn-modal" style="width:100%;" onclick="triggerRestorePicker()">Restore from file</button>';
+  html += '<input type="file" accept=".json,application/json" class="modal-file" id="restoreFile" onchange="handleRestoreFile(this)">';
+  html += '<div class="modal-actions"><button class="btn-modal" onclick="closeModal()">Cancel</button></div>';
+  html += '</div></div>';
+
+  var host = document.getElementById('modalHost');
+  if (!host) return;
+  host.innerHTML = html;
+}
+
+function downloadBackup() {
+  try {
+    var now = new Date();
+    var stamp = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+    downloadJsonString(JSON.stringify(appData), 'finances_backup_' + stamp + '.json');
+    showToast('Backup downloaded');
+  } catch (e) {
+    console.error('Backup error:', e);
+    showToast('Could not create backup');
+  }
+}
+
+function triggerRestorePicker() {
+  var input = document.getElementById('restoreFile');
+  if (input) input.click();
+}
+
+function handleRestoreFile(input) {
+  var file = input && input.files && input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev) {
+    var raw = String(ev.target.result);
+    var parsed = null;
+    try { parsed = JSON.parse(raw); } catch (e) { parsed = null; }
+    if (!parsed || typeof parsed !== 'object' ||
+        !parsed.months || typeof parsed.months !== 'object' ||
+        !parsed.config || typeof parsed.config !== 'object') {
+      showToast('Not a valid backup file');
+      return;
+    }
+    if (!confirm('Restore this backup? It replaces your current data.')) return;
+    backupRawData(STORAGE_KEY + '_backup_prerestore', storageGetItem(STORAGE_KEY), true);
+    if (needsMigration(parsed)) parsed = migrateData(parsed);
+    appData = validateAndRepairData(parsed);
+    currentMonth = latestMonthKey() || currentCalendarMonthKey();
+    saveData();
+    closeModal();
+    renderMonthBar();
+    renderMonth();
+    showToast('Backup restored');
+  };
+  reader.onerror = function() { showToast('Could not read that file'); };
+  reader.readAsText(file);
 }
 
 function switchMonth(month) {
@@ -906,14 +1220,10 @@ function switchMonth(month) {
   window.scrollTo(0, 0);
 }
 
-function sortMonthsChronologically(months) {
-  var order = {};
-  for (var i = 0; i < MONTH_NAMES.length; i++) {
-    order[MONTH_NAMES[i]] = i;
-  }
-  return months.slice().sort(function(a, b) {
-    return (order[a] || 0) - (order[b] || 0);
-  });
+function switchYear(year) {
+  var keys = getMonthKeysForYear(year);
+  if (!keys.length) return;
+  switchMonth(keys[keys.length - 1]);
 }
 
 function dateToSerial(dateStr) {
@@ -965,14 +1275,24 @@ function renderMonthBar() {
   try {
     var bar = document.getElementById('monthBar');
     if (!bar) return;
-    var html = '';
-    var months = sortMonthsChronologically(Object.keys(appData.months || {}));
-    for (var i = 0; i < months.length; i++) {
-      var m = months[i];
-      var active = m === currentMonth ? ' active' : '';
-      html += '<button class="month-pill' + active + '" onclick="switchMonth(' + "'" + escapeJs(m) + "'" + ')">' + escapeHtml(m) + '</button>';
+    var years = getYears();
+    var curYear = yearOf(currentMonth);
+    if (curYear === null) curYear = years.length ? years[years.length - 1] : new Date().getFullYear();
+
+    var html = '<select class="pill-select sel-year" id="yearSelect" onchange="switchYear(this.value)">';
+    for (var i = years.length - 1; i >= 0; i--) {
+      html += '<option value="' + years[i] + '"' + (years[i] === curYear ? ' selected' : '') + '>' + years[i] + '</option>';
     }
-    html += '<button class="month-pill add-btn" onclick="addMonth()">+ Month</button>';
+    html += '</select>';
+
+    html += '<select class="pill-select sel-month" id="monthSelect" onchange="switchMonth(this.value)">';
+    var keys = getMonthKeysForYear(curYear);
+    for (var j = 0; j < keys.length; j++) {
+      html += '<option value="' + attrEscape(keys[j]) + '"' + (keys[j] === currentMonth ? ' selected' : '') + '>' + escapeHtml(monthNameOf(keys[j])) + '</option>';
+    }
+    html += '</select>';
+
+    html += '<button class="btn-add-month" onclick="openAddMonthModal()">+ Month</button>';
     bar.innerHTML = html;
   } catch (e) {
     console.error('renderMonthBar error:', e);
@@ -992,6 +1312,9 @@ function renderMonth() {
 
     var appTitle = document.getElementById('appTitle');
     if (appTitle) appTitle.textContent = config.appName || 'My Finances';
+
+    var appSubtitle = document.getElementById('appSubtitle');
+    if (appSubtitle) appSubtitle.textContent = 'Personal Bookkeeping ' + (yearOf(currentMonth) || new Date().getFullYear());
 
     var html = '';
 
@@ -1032,51 +1355,6 @@ function renderMonth() {
 
     var fixedItems = (month.expenditures && month.expenditures['Fixed Expenses']) || [];
     html += renderFixedExpensesCard(fixedItems);
-
-    html += '<div class="section-card">';
-    html += '<div class="card-header"><span class="card-title">Beginning Balance</span><span class="card-total">ZAR</span></div>';
-    html += '<div class="balance-grid">';
-    var begTotal = 0;
-    var banks = config.banks || [];
-    for (var b = 0; b < banks.length; b++) {
-      var bank = banks[b];
-      var val = (month.balances && month.balances.beginning && month.balances.beginning[bank] !== undefined) ? month.balances.beginning[bank] : '';
-      html += '<div class="balance-item">';
-      html += '<div class="inline-edit-wrap" style="justify-content:center;">';
-      html += '<input type="text" class="balance-label" value="' + attrEscape(bank) + '" onchange="renameBank(' + b + ', this.value)" />';
-      html += '<button class="btn-inline" onclick="removeBank(' + b + ')">&#215;</button>';
-      html += '</div>';
-      html += '<input type="text" inputmode="decimal" class="balance-input" value="' + attrEscape(val) + '" onchange="updateBalance(' + "'beginning'" + ',' + "'" + escapeJs(bank) + "'" + ',this.value)">';
-      html += '</div>';
-      if (val) begTotal += parseFloat(val) || 0;
-    }
-    html += '</div>';
-    html += '<div class="add-bank-bar">';
-    html += '<input type="text" class="add-bank-input" id="newBankName" placeholder="New bank account...">';
-    html += '<button class="btn-add-bank" onclick="addBankFromUI()">Add Bank</button>';
-    html += '</div>';
-    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(begTotal) + '</span></div>';
-    html += '</div>';
-
-    html += '<div class="section-card">';
-    html += '<div class="card-header"><span class="card-title">Ending Balance</span><span class="card-total">ZAR</span></div>';
-    html += '<div class="balance-grid">';
-    var endTotal = 0;
-    for (var b2 = 0; b2 < banks.length; b2++) {
-      var bank2 = banks[b2];
-      var val2 = (month.balances && month.balances.ending && month.balances.ending[bank2] !== undefined) ? month.balances.ending[bank2] : '';
-      html += '<div class="balance-item">';
-      html += '<div class="inline-edit-wrap" style="justify-content:center;">';
-      html += '<input type="text" class="balance-label" value="' + attrEscape(bank2) + '" onchange="renameBank(' + b2 + ', this.value)" />';
-      html += '<button class="btn-inline" onclick="removeBank(' + b2 + ')">&#215;</button>';
-      html += '</div>';
-      html += '<input type="text" inputmode="decimal" class="balance-input" value="' + attrEscape(val2) + '" onchange="updateBalance(' + "'ending'" + ',' + "'" + escapeJs(bank2) + "'" + ',this.value)">';
-      html += '</div>';
-      if (val2) endTotal += parseFloat(val2) || 0;
-    }
-    html += '</div>';
-    html += '<div class="card-header" style="border-top:1px solid #2a2a3a;"><span class="card-title">Total</span><span class="card-total">' + formatMoney(endTotal) + '</span></div>';
-    html += '</div>';
 
     html += renderSummaryTable(month, config);
 
@@ -1233,7 +1511,7 @@ function nuclearReset() {
   } catch (e) {}
   memoryStore = null;
   appData = createDefaultData();
-  currentMonth = 'May';
+  currentMonth = latestMonthKey() || currentCalendarMonthKey();
   saveData();
   renderMonthBar();
   renderMonth();
@@ -1244,17 +1522,6 @@ function updateSalary(source, value) {
   try {
     if (appData.months[currentMonth] && appData.months[currentMonth].salary) {
       appData.months[currentMonth].salary[source] = value;
-    }
-    saveData();
-    renderMonth();
-  } catch (e) { console.error(e); }
-}
-
-function updateBalance(type, bank, value) {
-  try {
-    var month = appData.months[currentMonth];
-    if (month && month.balances && month.balances[type]) {
-      month.balances[type][bank] = value;
     }
     saveData();
     renderMonth();
@@ -1528,84 +1795,6 @@ function addSalarySourceFromUI() {
   showToast('Income source added');
 }
 
-function renameBank(index, newName) {
-  newName = (newName || '').trim();
-  if (!newName) {
-    showToast('Name cannot be empty');
-    renderMonth();
-    return;
-  }
-  var config = appData.config;
-  var oldName = config.banks[index];
-  if (oldName === newName) return;
-
-  config.banks[index] = newName;
-
-  for (var m in appData.months) {
-    var month = appData.months[m];
-    if (!month.balances) month.balances = { beginning: {}, ending: {} };
-    if (!month.balances.beginning) month.balances.beginning = {};
-    if (!month.balances.ending) month.balances.ending = {};
-    month.balances.beginning[newName] = month.balances.beginning[oldName] || '';
-    month.balances.ending[newName] = month.balances.ending[oldName] || '';
-    delete month.balances.beginning[oldName];
-    delete month.balances.ending[oldName];
-  }
-
-  saveData();
-  renderMonth();
-  showToast('Bank renamed');
-}
-
-function removeBank(index) {
-  var config = appData.config;
-  if (config.banks.length <= 1) {
-    showToast('Need at least one bank');
-    return;
-  }
-  var name = config.banks[index];
-  if (!confirm('Delete bank "' + name + '"?')) return;
-
-  config.banks.splice(index, 1);
-  for (var m in appData.months) {
-    var month = appData.months[m];
-    if (month.balances) {
-      if (month.balances.beginning) delete month.balances.beginning[name];
-      if (month.balances.ending) delete month.balances.ending[name];
-    }
-  }
-
-  saveData();
-  renderMonth();
-  showToast('Bank removed');
-}
-
-function addBankFromUI() {
-  var input = document.getElementById('newBankName');
-  var name = (input && input.value || '').trim();
-  if (!name) {
-    showToast('Enter a bank name');
-    return;
-  }
-  var config = appData.config;
-  if (config.banks.indexOf(name) !== -1) {
-    showToast('Bank already exists');
-    return;
-  }
-  config.banks.push(name);
-  for (var m in appData.months) {
-    var month = appData.months[m];
-    if (!month.balances) month.balances = { beginning: {}, ending: {} };
-    if (!month.balances.beginning) month.balances.beginning = {};
-    if (!month.balances.ending) month.balances.ending = {};
-    month.balances.beginning[name] = '';
-    month.balances.ending[name] = '';
-  }
-  saveData();
-  renderMonth();
-  showToast('Bank added');
-}
-
 function renameApp() {
   var newName = prompt('Enter app name:', appData.config.appName);
   if (newName && newName.trim()) {
@@ -1637,7 +1826,9 @@ function exportToExcel() {
     CreatedDate: new Date()
   };
 
-  var months = sortMonthsChronologically(Object.keys(appData.months));
+  var exportYear = yearOf(currentMonth);
+  if (exportYear === null) exportYear = new Date().getFullYear();
+  var months = getMonthKeysForYear(exportYear);
   var config = appData.config;
 
   // --- BABY BLUE COLOR PALETTE ---
@@ -1715,14 +1906,16 @@ function exportToExcel() {
 
   // --- BUILD EACH MONTH SHEET ---
   for (var m = 0; m < months.length; m++) {
-    var monthName = months[m];
-    var month = appData.months[monthName];
+    var monthKey = months[m];
+    var month = appData.months[monthKey];
+    var monthName = monthNameOf(monthKey);
+    var sheetTitle = monthName + ' ' + exportYear;
     var ws_data = [];
     var merges = [];
     var row = 0;
 
     // ===== ROW 0: MONTH TITLE =====
-    ws_data[row] = [monthName + ' 2026', '', '', '', '', '', '', '', '', '', '', ''];
+    ws_data[row] = [sheetTitle, '', '', '', '', '', '', '', '', '', '', ''];
     merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 11 } });
     row++;
 
@@ -1768,31 +1961,20 @@ function exportToExcel() {
     if (leftToSpend < 0) leftToSpend = 0;
     var savingsRate = incomeTotal > 0 ? ((netIncome / incomeTotal) * 100).toFixed(1) : '0.0';
 
-    var begTotal = 0, endTotal = 0;
-    for (var b = 0; b < config.banks.length; b++) {
-      var bank = config.banks[b];
-      begTotal += parseFloat(month.balances.beginning[bank]) || 0;
-      endTotal += parseFloat(month.balances.ending[bank]) || 0;
-    }
-
     // Card labels
-    ws_data[row] = ['Left to Spend', '', 'Total Expenses', '', 'Net Income', '', 'Savings Rate', '', 'Beg Balance', '', 'End Balance', ''];
-    merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 1 } });
-    merges.push({ s: { r: row, c: 2 }, e: { r: row, c: 3 } });
-    merges.push({ s: { r: row, c: 4 }, e: { r: row, c: 5 } });
-    merges.push({ s: { r: row, c: 6 }, e: { r: row, c: 7 } });
-    merges.push({ s: { r: row, c: 8 }, e: { r: row, c: 9 } });
-    merges.push({ s: { r: row, c: 10 }, e: { r: row, c: 11 } });
+    ws_data[row] = ['Left to Spend', '', '', 'Total Expenses', '', '', 'Net Income', '', '', 'Savings Rate', '', ''];
+    merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 2 } });
+    merges.push({ s: { r: row, c: 3 }, e: { r: row, c: 5 } });
+    merges.push({ s: { r: row, c: 6 }, e: { r: row, c: 8 } });
+    merges.push({ s: { r: row, c: 9 }, e: { r: row, c: 11 } });
     row++;
 
     // Card values
-    ws_data[row] = [leftToSpend, '', grandTotal, '', netIncome, '', savingsRate + '%', '', begTotal, '', endTotal, ''];
-    merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 1 } });
-    merges.push({ s: { r: row, c: 2 }, e: { r: row, c: 3 } });
-    merges.push({ s: { r: row, c: 4 }, e: { r: row, c: 5 } });
-    merges.push({ s: { r: row, c: 6 }, e: { r: row, c: 7 } });
-    merges.push({ s: { r: row, c: 8 }, e: { r: row, c: 9 } });
-    merges.push({ s: { r: row, c: 10 }, e: { r: row, c: 11 } });
+    ws_data[row] = [leftToSpend, '', '', grandTotal, '', '', netIncome, '', '', savingsRate + '%', '', ''];
+    merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 2 } });
+    merges.push({ s: { r: row, c: 3 }, e: { r: row, c: 5 } });
+    merges.push({ s: { r: row, c: 6 }, e: { r: row, c: 8 } });
+    merges.push({ s: { r: row, c: 9 }, e: { r: row, c: 11 } });
     row++;
 
     // ===== ROW 4: EMPTY =====
@@ -1800,28 +1982,21 @@ function exportToExcel() {
     row++;
 
     // ===== ROW 5+: INCOME TREND MINI TABLE =====
-    ws_data[row] = ['Income Trend', '', '', '', 'Balance Overview', '', '', '', 'Budget vs Actual', '', '', ''];
+    ws_data[row] = ['Income Trend', '', '', '', 'Budget vs Actual', '', '', '', '', '', '', ''];
     merges.push({ s: { r: row, c: 0 }, e: { r: row, c: 3 } });
     merges.push({ s: { r: row, c: 4 }, e: { r: row, c: 7 } });
-    merges.push({ s: { r: row, c: 8 }, e: { r: row, c: 11 } });
     row++;
 
     // Income Trend: Show all income sources with amounts
-    ws_data[row] = ['Source', 'Amount', '% of Total', '', 'Bank', 'Beginning', 'Ending', 'Change', 'Category', 'Budget', 'Actual', 'Diff'];
+    ws_data[row] = ['Source', 'Amount', '% of Total', '', 'Category', 'Budget', 'Actual', 'Diff', '', '', '', ''];
     row++;
 
-    var maxMiniRows = Math.max(config.salarySources.length, config.banks.length, config.categories.length + 1);
+    var maxMiniRows = Math.max(config.salarySources.length, config.categories.length + 1);
     for (var mr = 0; mr < maxMiniRows; mr++) {
       // Income Trend column
       var incSrc = config.salarySources[mr] || '';
       var incAmt = incSrc ? (parseFloat(month.salary[incSrc]) || 0) : '';
       var incPct = (incAmt && incomeTotal > 0) ? ((incAmt / incomeTotal) * 100).toFixed(1) + '%' : '';
-
-      // Balance Overview column
-      var balBank = config.banks[mr] || '';
-      var balBeg = balBank ? (parseFloat(month.balances.beginning[balBank]) || 0) : '';
-      var balEnd = balBank ? (parseFloat(month.balances.ending[balBank]) || 0) : '';
-      var balChange = (balBeg !== '' && balEnd !== '') ? (balEnd - balBeg) : '';
 
       // Budget vs Actual column
       var bvaCat = config.categories[mr] || '';
@@ -1835,12 +2010,12 @@ function exportToExcel() {
         bvaDiff = fixedBudget - fixedTotal;
       }
 
-      ws_data[row] = [incSrc, incAmt, incPct, '', balBank, balBeg, balEnd, balChange, bvaCat, bvaBud, bvaAct, bvaDiff];
+      ws_data[row] = [incSrc, incAmt, incPct, '', bvaCat, bvaBud, bvaAct, bvaDiff, '', '', '', ''];
       row++;
     }
 
     // Mini table totals
-    ws_data[row] = ['Total', incomeTotal, '100%', '', 'Total', begTotal, endTotal, endTotal - begTotal, 'Total', budgetTotal, grandTotal, budgetTotal - grandTotal];
+    ws_data[row] = ['Total', incomeTotal, '100%', '', 'Total', budgetTotal, grandTotal, budgetTotal - grandTotal, '', '', '', ''];
     row++;
 
     // ===== ROW: EMPTY =====
@@ -1857,10 +2032,7 @@ function exportToExcel() {
     ws_data[row] = ['Source', 'Payday', 'Amount', '', 'Name', 'Budget', 'Amount', '', 'Name', 'Budget', 'Amount', ''];
     row++;
 
-    var maxRows = Math.max(config.salarySources.length, fixedItems.length, 0);
-    for (var c2 = 0; c2 < config.categories.length; c2++) {
-      maxRows = Math.max(maxRows, month.expenditures[config.categories[c2]].length);
-    }
+    var maxRows = Math.max(config.salarySources.length, fixedItems.length, config.categories.length);
     maxRows = Math.max(maxRows, 5);
 
     for (var r2 = 0; r2 < maxRows; r2++) {
@@ -1872,11 +2044,12 @@ function exportToExcel() {
       var fixedAmt = fixedItems[r2] ? fixedItems[r2].amount : '';
       var fixedBud = fixedItems[r2] ? fixedBudget : '';
 
+      // One row per category: the category total, so this block reconciles
+      // with its own Total row below.
       var expCat = config.categories[r2] || '';
-      var expItems = expCat ? month.expenditures[expCat] : [];
-      var expName = expItems[0] ? (expItems[0].desc || expCat) : (expCat || '');
-      var expAmt = expItems[0] ? expItems[0].amount : '';
+      var expName = expCat;
       var expBud = expCat ? (month.budgets[expCat] || '') : '';
+      var expAmt = expCat ? (categoryTotals[expCat] || 0) : '';
 
       ws_data[row] = [incomeSrc, incomeDate, incomeAmt, '', fixedName, fixedBud, fixedAmt, '', expName, expBud, expAmt, ''];
       row++;
@@ -1921,20 +2094,20 @@ function exportToExcel() {
     applyStyle(ws, { s: { r: 3, c: 0 }, e: { r: 3, c: 11 } }, S.cardValue);
 
     // Mini table headers (row 5 = labels, row 6 = column headers)
-    applyStyle(ws, { s: { r: 5, c: 0 }, e: { r: 5, c: 11 } }, makeStyle({ bold: true, sz: 11, color: textMed, fill: offWhite, align: 'center', border: borderLight }));
-    applyStyle(ws, { s: { r: 6, c: 0 }, e: { r: 6, c: 11 } }, S.miniHeader);
+    applyStyle(ws, { s: { r: 5, c: 0 }, e: { r: 5, c: 7 } }, makeStyle({ bold: true, sz: 11, color: textMed, fill: offWhite, align: 'center', border: borderLight }));
+    applyStyle(ws, { s: { r: 6, c: 0 }, e: { r: 6, c: 7 } }, S.miniHeader);
 
     // Mini table data
     var miniStart = 7;
     var miniEnd = miniStart + maxMiniRows;
     for (var mr2 = miniStart; mr2 < miniEnd; mr2++) {
-      for (var mc = 0; mc < 12; mc++) {
+      for (var mc = 0; mc < 8; mc++) {
         if (mc === 3) continue;
         var mAddr = XLSX.utils.encode_cell({ r: mr2, c: mc });
         var mCell = ws[mAddr];
         if (!mCell) continue;
         var isNum = typeof mCell.v === 'number';
-        var isPct = (mc === 2 || mc === 6 || mc === 11);
+        var isPct = (mc === 2);
         if (isNum && !isPct) {
           mCell.s = S.miniCellRight;
           mCell.z = 'R#,##0.00';
@@ -1948,12 +2121,12 @@ function exportToExcel() {
 
     // Mini table totals
     var miniTotalRow = miniEnd;
-    for (var mtc = 0; mtc < 12; mtc++) {
+    for (var mtc = 0; mtc < 8; mtc++) {
       if (mtc === 3) continue;
       var mtAddr = XLSX.utils.encode_cell({ r: miniTotalRow, c: mtc });
       var mtCell = ws[mtAddr];
       if (!mtCell) continue;
-      if (mtc === 0 || mtc === 4 || mtc === 8) {
+      if (mtc === 0 || mtc === 4) {
         mtCell.s = S.totalRow;
       } else {
         mtCell.s = S.totalRowRight;
@@ -2060,28 +2233,29 @@ function exportToExcel() {
       else ws['!rows'][rh].hpt = 20;
     }
 
-    XLSX.utils.book_append_sheet(wb, ws, monthName);
+    XLSX.utils.book_append_sheet(wb, ws, sheetTitle);
   }
 
   // --- OVERVIEW SHEET ---
   var overviewData = [];
   var oRow = 0;
 
-  overviewData[oRow] = [appData.config.appName || 'My Finances', '', '', '', '', '', '', '', '', '', '', ''];
+  overviewData[oRow] = [appData.config.appName || 'My Finances', '', '', '', ''];
   oRow++;
-  overviewData[oRow] = ['Annual Overview 2026', '', '', '', '', '', '', '', '', '', '', ''];
+  overviewData[oRow] = ['Annual Overview ' + exportYear, '', '', '', ''];
   oRow++;
-  overviewData[oRow] = ['', '', '', '', '', '', '', '', '', '', '', ''];
-  oRow++;
-
-  overviewData[oRow] = ['Month', 'Income', 'Expenses', 'Net', 'Savings %', 'Beg Balance', 'End Balance', '', '', '', '', ''];
+  overviewData[oRow] = ['', '', '', '', ''];
   oRow++;
 
-  var annualIncome = 0, annualExpenses = 0, annualNet = 0, annualBeg = 0, annualEnd = 0;
+  overviewData[oRow] = ['Month', 'Income', 'Expenses', 'Net', 'Savings %'];
+  oRow++;
+
+  var annualIncome = 0, annualExpenses = 0, annualNet = 0;
 
   for (var om = 0; om < months.length; om++) {
-    var oMonthName = months[om];
-    var oMonth = appData.months[oMonthName];
+    var oMonthKey = months[om];
+    var oMonthName = monthNameOf(oMonthKey);
+    var oMonth = appData.months[oMonthKey];
 
     var oIncome = 0;
     for (var os = 0; os < config.salarySources.length; os++) {
@@ -2104,47 +2278,39 @@ function exportToExcel() {
     var oNet = oIncome - oExpenses;
     var oSavings = oIncome > 0 ? ((oNet / oIncome) * 100).toFixed(1) : '0.0';
 
-    var oBeg = 0, oEnd = 0;
-    for (var ob = 0; ob < config.banks.length; ob++) {
-      oBeg += parseFloat(oMonth.balances.beginning[config.banks[ob]]) || 0;
-      oEnd += parseFloat(oMonth.balances.ending[config.banks[ob]]) || 0;
-    }
-
     annualIncome += oIncome;
     annualExpenses += oExpenses;
     annualNet += oNet;
-    annualBeg += oBeg;
-    annualEnd += oEnd;
 
-    overviewData[oRow] = [oMonthName, oIncome, oExpenses, oNet, oSavings + '%', oBeg, oEnd, '', '', '', '', ''];
+    overviewData[oRow] = [oMonthName, oIncome, oExpenses, oNet, oSavings + '%'];
     oRow++;
   }
 
-  overviewData[oRow] = ['ANNUAL TOTAL', annualIncome, annualExpenses, annualNet, annualIncome > 0 ? ((annualNet / annualIncome) * 100).toFixed(1) + '%' : '0.0%', annualBeg, annualEnd, '', '', '', '', ''];
+  overviewData[oRow] = ['ANNUAL TOTAL', annualIncome, annualExpenses, annualNet, annualIncome > 0 ? ((annualNet / annualIncome) * 100).toFixed(1) + '%' : '0.0%'];
   oRow++;
 
   var wsOverview = XLSX.utils.aoa_to_sheet(overviewData);
   wsOverview['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } }
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }
   ];
-  setColWidths(wsOverview, [16, 14, 14, 14, 12, 14, 14, 2, 2, 2, 2, 2]);
+  setColWidths(wsOverview, [16, 14, 14, 14, 12]);
 
-  applyStyle(wsOverview, { s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }, S.monthTitle);
-  applyStyle(wsOverview, { s: { r: 1, c: 0 }, e: { r: 1, c: 11 } }, makeStyle({ bold: true, sz: 14, color: darkerBlue, fill: paleBlue, align: 'center', border: borderLight }));
-  applyStyle(wsOverview, { s: { r: 3, c: 0 }, e: { r: 3, c: 11 } }, S.tableHeader);
+  applyStyle(wsOverview, { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, S.monthTitle);
+  applyStyle(wsOverview, { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }, makeStyle({ bold: true, sz: 14, color: darkerBlue, fill: paleBlue, align: 'center', border: borderLight }));
+  applyStyle(wsOverview, { s: { r: 3, c: 0 }, e: { r: 3, c: 4 } }, S.tableHeader);
 
   for (var or = 4; or < overviewData.length; or++) {
-    for (var oc = 0; oc < 7; oc++) {
+    for (var oc = 0; oc < 5; oc++) {
       var oAddr = XLSX.utils.encode_cell({ r: or, c: oc });
       var oCell = wsOverview[oAddr];
       if (!oCell) continue;
       if (typeof oCell.v === 'string' && oCell.v.indexOf('ANNUAL') === 0) {
         oCell.s = (oc === 0) ? S.totalRow : S.totalRowRight;
       } else {
-        oCell.s = (oc === 0) ? S.tableCell : (oc >= 1 && oc <= 6) ? S.tableCellRight : S.tableCell;
+        oCell.s = (oc === 0) ? S.tableCell : S.tableCellRight;
       }
-      if (oc >= 1 && oc <= 6 && typeof oCell.v === 'number') {
+      if (oc >= 1 && oc <= 3 && typeof oCell.v === 'number') {
         oCell.z = 'R#,##0.00';
       }
     }
@@ -2162,11 +2328,6 @@ function exportToExcel() {
   var configData = [];
   configData.push(['Configuration', '']);
   configData.push(['App Name', appData.config.appName || 'My Finances']);
-  configData.push(['', '']);
-  configData.push(['Banks', '']);
-  for (var cb = 0; cb < config.banks.length; cb++) {
-    configData.push(['', config.banks[cb]]);
-  }
   configData.push(['', '']);
   configData.push(['Income Sources', '']);
   for (var cs = 0; cs < config.salarySources.length; cs++) {
@@ -2186,14 +2347,12 @@ function exportToExcel() {
   }
 
   var wsConfig = XLSX.utils.aoa_to_sheet(configData);
-  var bankSectionStart = 3;
-  var incomeSectionStart = bankSectionStart + config.banks.length + 3;
-  var catSectionStart = incomeSectionStart + config.salarySources.length + 3;
+  var incomeSectionStart = 3;
+  var catSectionStart = incomeSectionStart + config.salarySources.length + 2;
   var fixedDetailStart = catSectionStart + config.categories.length + 3;
 
   wsConfig['!merges'] = [
     { s: { r: 0, c: 0 }, e: { r: 0, c: 1 } },
-    { s: { r: bankSectionStart, c: 0 }, e: { r: bankSectionStart, c: 1 } },
     { s: { r: incomeSectionStart, c: 0 }, e: { r: incomeSectionStart, c: 1 } },
     { s: { r: catSectionStart, c: 0 }, e: { r: catSectionStart, c: 1 } },
     { s: { r: fixedDetailStart, c: 0 }, e: { r: fixedDetailStart, c: 1 } }
@@ -2208,7 +2367,7 @@ function exportToExcel() {
       var cCell2 = wsConfig[cAddr2];
       if (!cCell2 || cr2 === 0) continue;
 
-      var isHeader = (cr2 === bankSectionStart || cr2 === incomeSectionStart || cr2 === catSectionStart || cr2 === fixedDetailStart);
+      var isHeader = (cr2 === incomeSectionStart || cr2 === catSectionStart || cr2 === fixedDetailStart);
       if (isHeader) {
         cCell2.s = S.sectionHeader;
       } else if (cc4 === 0 && typeof cCell2.v === 'string' && cCell2.v !== '') {
@@ -2233,7 +2392,7 @@ function exportToExcel() {
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = (appData.config.appName || 'My_Finances') + '_2026.xlsx';
+  a.download = (appData.config.appName || 'My_Finances') + '_' + exportYear + '.xlsx';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
